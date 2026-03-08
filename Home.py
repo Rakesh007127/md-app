@@ -48,6 +48,7 @@ st.set_page_config(
 
 # --- 🛠️ API SETUP ---
 try:
+    # 👇👇 2. PASTE YOUR NEW GOOGLE API KEY HERE 👇👇
     my_api_key = st.secrets["GOOGLE_API_KEY"] 
 except:
     my_api_key = "AIzaSyDS0HBbT5Ktegf6TwtF0Vwc1HP2OGTUuVU"
@@ -66,28 +67,6 @@ def load_lottieurl(url):
     except: return None
 
 lottie_orb = load_lottieurl("https://lottie.host/5a889496-5273-41c0-827d-78363717df3f/M387N9O2Q2.json")
-
-# --- 🎨 GLOBAL STYLES (SAFE FOR LOGIN) ---
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
-    html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; background-color: #FFFFFF; }
-    .stApp { background-color: #FFFFFF; }
-    
-    /* Hide standard header/footer */
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
-    
-    /* 🔴 SOS Button */
-    div.stButton > button[kind="primary"] {
-        background: #DC2626 !important;
-        border: none !important;
-        color: white !important;
-        font-weight: 700 !important;
-        box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
-    }
-</style>
-""", unsafe_allow_html=True)
 
 # --- 🛠️ DATABASE FUNCTIONS ---
 def init_db():
@@ -442,28 +421,6 @@ def full_history_modal():
                 st.markdown(f"**Symptom:** {item[1]}"); st.info(f"**Advice:**\n{item[2]}")
     else: st.info("No history found.")
 
-@st.dialog("👤 User Profile")
-def profile_modal():
-    st.write(f"**User:** {st.session_state.username}")
-    st.write(f"**Name:** {st.session_state.name}")
-    tab1, tab2 = st.tabs(["Edit Age", "Change Password"])
-    with tab1:
-        current_age_val = int(st.session_state.age) if st.session_state.age and st.session_state.age.isdigit() else 18
-        new_age = st.number_input("Update Age", min_value=1, max_value=120, value=current_age_val)
-        if st.button("Save Age"):
-            update_user_age(st.session_state.username, str(new_age)); st.session_state.age = str(new_age); st.success("Updated!"); time.sleep(1); st.rerun()
-    with tab2:
-        curr_pass = st.text_input("Current Password", type="password")
-        new_pass = st.text_input("New Password", type="password")
-        conf_pass = st.text_input("Confirm New Password", type="password")
-        if st.button("Update Password"):
-            if not curr_pass or not new_pass: st.warning("Please fill fields.")
-            elif new_pass != conf_pass: st.error("New passwords do not match.")
-            else:
-                if login_user(st.session_state.username, curr_pass):
-                    update_password(st.session_state.username, new_pass); st.success("Updated!")
-                else: st.error("Current password incorrect.")
-
 # --- LOGIN SCREEN ---
 def login_screen():
     col1, col2, col3 = st.columns([1,1.5,1])
@@ -508,23 +465,12 @@ def login_screen():
 
 # --- PATIENT APP ---
 def patient_app():
-    # --- 🔒 APPLY APP CSS ONLY WHEN LOGGED IN (Fixes Login Screen Glitch) ---
+    # --- 🔒 APPLY APP CSS ONLY WHEN LOGGED IN (Isolates from Login) ---
     st.markdown("""
     <style>
-        /* 1. Target the Horizontal Block containing Input+Icons */
-        div[data-testid="stBottomBlock"] [data-testid="stHorizontalBlock"] {
-            background-color: #F8F9FA; 
-            border-radius: 30px;
-            border: 1px solid #E5E7EB; /* Single clean border */
-            padding: 4px 10px;
-            align-items: center;
-            gap: 0px !important;
-            box-shadow: none; 
-        }
-
-        /* 2. The Input Field - Strip all styling */
+        /* 1. RESET ALL TEXT INPUT BORDERS inside the Footer */
         div[data-testid="stBottomBlock"] div[data-testid="stTextInput"] input {
-            border: none !important;
+            border: 0px solid transparent !important;
             box-shadow: none !important;
             background-color: transparent !important;
             padding-left: 5px;
@@ -537,13 +483,19 @@ def patient_app():
             box-shadow: none !important;
             background-color: transparent !important;
         }
-        div[data-testid="stBottomBlock"] div[data-testid="stTextInput"] { 
-            margin-bottom: 0px !important; 
-            width: 100% !important; 
-            border: none !important; 
+        
+        /* 2. Style the CONTAINER that holds the input + icons */
+        /* This effectively creates the "Pill" shape around them all */
+        div[data-testid="stBottomBlock"] [data-testid="stHorizontalBlock"] {
+            background-color: #F8F9FA; 
+            border-radius: 30px;
+            border: 1px solid #E5E7EB;
+            padding: 4px 10px;
+            align-items: center;
+            gap: 0px !important;
         }
 
-        /* 3. The Icons (Cam/Mic) - Transparent Buttons */
+        /* 3. Icons (Transparent) */
         div[data-testid="stBottomBlock"] button {
             border: none !important;
             background: transparent !important;
@@ -564,17 +516,7 @@ def patient_app():
             color: #2563EB !important;
         }
 
-        /* 4. Language Selector (Floating) */
-        div[data-testid="stSelectbox"] > div > div {
-            border-radius: 20px !important;
-            border: none !important;
-            background-color: #F3F4F6 !important;
-            font-size: 12px !important;
-            min-height: 28px !important;
-            padding: 0px 10px !important;
-        }
-
-        /* 5. FIX FOOTER AT BOTTOM */
+        /* 4. Sticky Footer */
         div[data-testid="stBottomBlock"] {
             position: fixed;
             bottom: 0;
@@ -585,6 +527,16 @@ def patient_app():
             background-color: #FFFFFF;
             border-top: 1px solid #F9FAFB;
             z-index: 999;
+        }
+        
+        /* 5. Language Selector */
+        div[data-testid="stSelectbox"] > div > div {
+            border-radius: 20px !important;
+            border: none !important;
+            background-color: #F3F4F6 !important;
+            font-size: 12px !important;
+            min-height: 28px !important;
+            padding: 0px 10px !important;
         }
         
         /* 🟢 MENU CARDS (Main) */
@@ -618,17 +570,15 @@ def patient_app():
         side_name = st.session_state.name if st.session_state.name else st.session_state.username
         st.caption(f"User: {side_name}")
         
-        # --- 🛠️ SMART SIDEBAR TOOLS LOGIC ---
-        # The tools appear HERE only after a chat starts
-        if st.session_state.messages:
-            st.markdown("### 🛠️ Tools")
-            if st.button("💊 Medicine", use_container_width=True): medicine_modal()
-            if st.button("⚖️ BMI", use_container_width=True): bmi_modal()
-            if st.button("🚑 First Aid", use_container_width=True): first_aid_modal()
-            if st.button("📄 Digitizer", use_container_width=True): prescription_modal()
-            if st.button("🥗 Health Plan", use_container_width=True): health_plan_modal()
-            if st.button("🏆 Streak", use_container_width=True): gamification_modal()
-            st.markdown("---")
+        # --- ALL 6 TOOLS (ALWAYS VISIBLE) ---
+        st.markdown("### 🛠️ Tools")
+        if st.button("💊 Medicine", use_container_width=True): medicine_modal()
+        if st.button("⚖️ BMI", use_container_width=True): bmi_modal()
+        if st.button("🚑 First Aid", use_container_width=True): first_aid_modal()
+        if st.button("📄 Digitizer", use_container_width=True): prescription_modal()
+        if st.button("🥗 Health Plan", use_container_width=True): health_plan_modal()
+        if st.button("🏆 Streak", use_container_width=True): gamification_modal()
+        st.markdown("---")
         
         if st.button("👤 My Profile", use_container_width=True): profile_modal()
         if st.button("📜 Full History", use_container_width=True): full_history_modal()
@@ -658,21 +608,7 @@ def patient_app():
                 if "https://www.google.com/maps/search/SPECIALIST_TYPE+near+me" in m["content"] and m["role"] == "assistant":
                     st.link_button("📍 Find Specialist Near Me", m["content"].split("(")[-1].split(")")[0])
 
-    # 3. VERTICAL BUTTONS (MOBILE STYLE - HOME ONLY)
-    if not st.session_state.messages:
-        # Centered narrow column for cleaner look
-        c_left, c_mid, c_right = st.columns([0.5, 3, 0.5])
-        with c_mid:
-            st.markdown('<div class="feature-btn">', unsafe_allow_html=True)
-            if st.button("💊 Medicine Reminder"): medicine_modal()
-            if st.button("⚖️ BMI Calculator"): bmi_modal()
-            if st.button("🚑 First Aid Guide"): first_aid_modal()
-            if st.button("📄 Digitizer"): prescription_modal()
-            if st.button("🥗 Health Plan"): health_plan_modal()
-            if st.button("🏆 Streak"): gamification_modal()
-            st.markdown('</div>', unsafe_allow_html=True)
-
-    # --- SPACER ---
+    # 3. SPACER (Push content up above sticky footer)
     st.markdown("<div style='height: 150px;'></div>", unsafe_allow_html=True)
 
     # --- LOGIC FOR INPUT ---
@@ -696,7 +632,7 @@ def patient_app():
         st.markdown('<div class="unified-bar">', unsafe_allow_html=True)
         
         # Layout: [ Input (80%) ] [ Cam (10%) ] [ Mic (10%) ]
-        c_input, c_cam, c_mic = st.columns([8, 1, 1])
+        c_input, c_cam, c_mic = st.columns([8.6, 0.7, 0.7])
         
         with c_input:
             st.text_input("Msg...", placeholder=f"Ask {APP_NAME}...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
@@ -738,26 +674,29 @@ def patient_app():
                 with st.spinner("Thinking..."):
                     try:
                         hist = get_medical_history_context(st.session_state.username)
-                        model = genai.GenerativeModel('gemini-2.5-flash')
                         
-                        try:
-                            lang_code = lang_map[sel_lang]
-                        except:
-                            lang_code = "en-US"
-                            
-                        prompt = f"""
-                        Act as {APP_NAME}, a medical expert. Patient: {st.session_state.name}.
-                        History: {hist}. Query: {user_msg}.
-                        Output Language Code: {lang_code}.
-                        If medical: Give Cause, Precautions, OTC Meds, Doctor Type.
-                        If casual: Just chat nicely.
+                        # --- IMPROVED SYSTEM PROMPT ---
+                        system_instruction = f"""
+                        You are {APP_NAME}, a medical assistant.
+                        User: {st.session_state.name}.
+                        History: {hist}.
+                        
+                        RULES:
+                        1. Answer directly and concisely.
+                        2. If medical: Structure answer as [Possible Causes] -> [Home Remedies] -> [Warning Signs].
+                        3. If casual (e.g. "hi"): Be friendly but brief.
+                        4. DO NOT generate code or math unless asked.
+                        5. Translate final response to: {sel_lang}.
                         """
+                        
+                        model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=system_instruction)
+                        
                         if "Analyze this medical image" in user_msg and st.session_state.pending_image:
                             img = Image.open(st.session_state.pending_image)
-                            response = model.generate_content([prompt, img])
+                            response = model.generate_content([user_msg, img])
                             st.session_state.pending_image = None 
                         else:
-                            response = model.generate_content(prompt)
+                            response = model.generate_content(user_msg)
                         
                         full_resp = response.text
                         st.write(full_resp)
