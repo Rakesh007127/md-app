@@ -69,17 +69,17 @@ def load_lottieurl(url):
 
 lottie_orb = load_lottieurl("https://lottie.host/5a889496-5273-41c0-827d-78363717df3f/M387N9O2Q2.json")
 
-# --- 🎨 UNIFIED SEARCH BAR CSS ---
+# --- 🎨 ADVANCED CSS (Clean Search Bar) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
     html, body, [class*="css"] { font-family: 'Inter', sans-serif; background-color: #FFFFFF; }
     .stApp { background-color: #FFFFFF; }
 
-    /* Hide standard header/footer */
-    #MainMenu {visibility: visible;} /* Keep visible for Sidebar Double Arrow */
-    footer {visibility: hidden;}
+    /* Hide standard Streamlit header/footer elements */
     header {visibility: visible; background: transparent;}
+    [data-testid="stHeader"] {background-color: rgba(0,0,0,0);}
+    footer {visibility: hidden;}
 
     /* 🟢 VERTICAL SKETCH BUTTONS (Main Menu) */
     .sketch-btn button {
@@ -120,39 +120,46 @@ st.markdown("""
     /* 🚀 THE MAGIC: UNIFIED SEARCH BAR STYLING */
     /* ------------------------------------------------ */
     
-    /* 1. The Container that acts as the "Bar" */
+    /* 1. The Container that acts as the "Bar" (Rounded & Bordered) */
     .search-container {
-        border: 2px solid #333;
+        border: 2px solid #333; 
         border-radius: 30px;
         background-color: white;
         padding: 2px 5px;
-        margin-bottom: 10px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        margin-bottom: 5px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Soft shadow */
     }
 
-    /* 2. Remove Border from the actual Input Field so it blends in */
+    /* 2. Remove default Streamlit input styling so it blends in */
     div[data-testid="stTextInput"] input {
         border: none !important;
         box-shadow: none !important;
         background-color: transparent !important;
-        padding-left: 10px;
+        padding-left: 15px;
+        font-size: 16px;
     }
     
-    /* 3. Style the Icons (Cam/Mic) to look like they are inside */
-    div[data-testid="stBottomBlock"] button {
+    /* 3. Style the Icons (Cam/Mic) to look like they are inside the bar */
+    div[data-testid="stBottomBlock"] [data-testid="stHorizontalBlock"] button {
         border: none !important;
         background: transparent !important;
         padding: 0 !important;
         color: #555 !important;
-        font-size: 20px !important;
+        font-size: 22px !important;
+        width: 40px !important;
+        height: 40px !important;
     }
-    div[data-testid="stBottomBlock"] button:hover {
+    div[data-testid="stBottomBlock"] [data-testid="stHorizontalBlock"] button:hover {
         background: #f0f0f0 !important;
         border-radius: 50% !important;
     }
+    
+    /* Remove labels/padding above search bar components */
+    [data-testid="stBottomBlock"] label { display: none !important; }
+    [data-testid="stBottomBlock"] div[data-testid="stVerticalBlock"] > div { padding: 0 !important; }
 
-    /* 4. Language Selector Styling */
-    div[data-testid="stSelectbox"] > div > div {
+    /* 4. Language Selector Styling (Above Footer) */
+    .lang-container div[data-testid="stSelectbox"] > div > div {
         border-radius: 20px !important;
         border: 2px solid #333 !important;
         background-color: white !important;
@@ -160,7 +167,7 @@ st.markdown("""
 
     /* 📱 FOOTER POSITIONING */
     div[data-testid="stBottomBlock"] {
-        padding-bottom: 15px;
+        padding-bottom: 20px;
         background-color: white;
         border-top: 1px solid #f0f0f0;
     }
@@ -648,18 +655,13 @@ def patient_app():
             st.session_state.messages.append({"role": "user", "content": st.session_state.user_query})
             st.session_state.user_query = "" 
 
-    # --- 5. STICKY FOOTER & LANGUAGE (SKETCH STYLE) ---
+    # --- 5. STICKY FOOTER & LANGUAGE (CLEAN STYLE) ---
     
-    # Language floating right above the footer
-    if not st.session_state.messages:
-        # Floating language button like sketch
-        pass 
-
     with st.container(border=False):
-        # We need a wrapper to hold the language button and the input bar
+        # Wrapper to hold floating language & search bar
         st.markdown('<div class="footer-wrapper">', unsafe_allow_html=True)
         
-        # 1. LANGUAGE BUTTON (Floating Right)
+        # 1. LANGUAGE BUTTON (Floating Right, above input)
         c_spacer, c_lang = st.columns([3, 1.5])
         with c_lang:
              sel_lang = st.selectbox("Language", ["English", "Hindi", "Tamil", "Telugu"], key="lang_select", label_visibility="collapsed")
@@ -668,15 +670,13 @@ def patient_app():
 
         # 2. UNIFIED SEARCH BAR (Input + Cam + Mic)
         # We use a container with a border to mimic the single box look
+        # NO PLUS BUTTON HERE
         with st.container():
             st.markdown('<div class="search-container">', unsafe_allow_html=True)
-            c_plus, c_input, c_cam, c_mic = st.columns([0.5, 5, 0.5, 0.5])
             
-            with c_plus:
-                # "+" Button inside (using popover for cleaner look)
-                with st.popover("➕", use_container_width=True):
-                    if st.button("Clean Chat"): st.session_state.messages = []; st.rerun()
-
+            # Layout: [ Input (Very Wide) ] [ Cam ] [ Mic ]
+            c_input, c_cam, c_mic = st.columns([5, 0.5, 0.5])
+            
             with c_input:
                 st.text_input("Msg...", placeholder=f"Ask {APP_NAME}...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
             
