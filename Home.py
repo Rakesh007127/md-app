@@ -69,7 +69,7 @@ def load_lottieurl(url):
 
 lottie_orb = load_lottieurl("https://lottie.host/5a889496-5273-41c0-827d-78363717df3f/M387N9O2Q2.json")
 
-# --- 🎨 GEMINI-STYLE CSS ---
+# --- 🎨 GEMINI-STYLE CSS (FIXED FOR MOBILE ROW) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
@@ -81,23 +81,21 @@ st.markdown("""
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    /* 🟢 GEMINI STYLE BUTTONS (Pills) */
+    /* 🟢 GEMINI PILL BUTTONS (Main Screen) */
     div.stButton > button {
         text-align: left !important;
         display: flex;
         align-items: center;
-        width: auto !important; /* Let them be pill sized, not full width if possible */
-        min-width: 180px;
+        width: 100% !important;
         padding: 12px 20px !important;
-        border-radius: 25px !important;
-        background-color: #F0F4F9 !important; /* Google Light Grey */
+        border-radius: 16px !important;
+        background-color: #F0F4F9 !important;
         border: none !important;
         color: #1F1F1F !important;
         font-weight: 500 !important;
         font-size: 16px !important;
         box-shadow: none !important;
         margin-bottom: 8px !important;
-        transition: background 0.2s;
     }
     div.stButton > button:hover {
         background-color: #E1E5EA !important;
@@ -123,34 +121,51 @@ st.markdown("""
         color: #000; 
     }
 
-    /* 📱 FOOTER STYLING */
+    /* 🚀 STICKY FOOTER HACKS */
     div[data-testid="stBottomBlock"] {
         background-color: #FFFFFF;
-        padding-bottom: 10px;
+        padding-bottom: 15px;
+        padding-top: 10px;
+        border-top: 1px solid #F0F4F9;
     }
     
-    /* Input Field - Rounded like Gemini */
+    /* FORCE ROW LAYOUT ON MOBILE */
+    [data-testid="stBottomBlock"] [data-testid="stHorizontalBlock"] {
+        flex-wrap: nowrap !important; /* This prevents stacking */
+        align-items: center !important;
+        gap: 5px !important;
+    }
+
+    /* ICON BUTTONS (Camera, Mic, Plus) */
+    /* Target buttons inside the footer columns */
+    [data-testid="stBottomBlock"] button {
+        background-color: transparent !important;
+        border: none !important;
+        padding: 0px !important;
+        font-size: 20px !important;
+        color: #444746 !important;
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 50% !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    [data-testid="stBottomBlock"] button:hover {
+        background-color: #F0F4F9 !important;
+    }
+
+    /* INPUT FIELD */
     div[data-testid="stTextInput"] input {
-        border-radius: 30px !important;
+        border-radius: 24px !important;
         background-color: #F0F4F9 !important;
         border: none !important;
         padding-left: 20px;
+        height: 48px;
     }
     
-    /* Profile Circle */
-    .profile-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background-color: #6a11cb;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 18px;
-        float: right;
-    }
+    /* HIDE LABELS */
+    label { display: none !important; }
 
 </style>
 """, unsafe_allow_html=True)
@@ -584,6 +599,9 @@ def patient_app():
         if st.button("➕ New Chat", use_container_width=True): st.session_state.messages = []; st.rerun()
         if st.button("📜 Full History", use_container_width=True): full_history_modal()
         
+        # --- FIXED: REMOVED LARGE SPACER ---
+        st.markdown("<br>", unsafe_allow_html=True)
+        
         st.markdown("---")
         if st.button("👤 My Profile", use_container_width=True): profile_modal()
         if st.button("Log Out", use_container_width=True): 
@@ -591,7 +609,7 @@ def patient_app():
 
     # --- MAIN CONTENT AREA ---
     
-    # 1. HEADER (Gemini Style: Left Text + Right Profile)
+    # 1. HEADER (Gemini Style: Left Text + Right Profile + Lang)
     if not st.session_state.messages:
         # Create a container for the header
         c_text, c_profile = st.columns([5, 1])
@@ -599,11 +617,13 @@ def patient_app():
             first_name = st.session_state.name.split()[0]
             st.markdown(f"""
             <div style="padding-top: 10px;">
-                <h2 style='color: #444746; font-size: 24px; margin-bottom: 0;'>Hi {first_name}</h2>
-                <h1 style='background: -webkit-linear-gradient(45deg, #4285F4, #9B72CB, #D96570); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 36px; margin-top: 0;'>Where should we start?</h1>
+                <h2 style='color: #444746; font-size: 24px; margin-bottom: 0;'>Hello, {first_name}</h2>
+                <h3 style='color: #666; font-weight: 400; font-size: 16px; margin-top: 0;'>How can I assist you today?</h3>
             </div>
             """, unsafe_allow_html=True)
         with c_profile:
+            # Language + Profile Stack
+            lang = st.selectbox("🌐", ["En", "Hi", "Ta", "Te"], key="lang_header", label_visibility="collapsed")
             # Simulate Profile Circle
             initial = first_name[0].upper() if first_name else "U"
             st.markdown(f'<div class="profile-icon">{initial}</div>', unsafe_allow_html=True)
@@ -639,11 +659,11 @@ def patient_app():
             st.session_state.messages.append({"role": "user", "content": st.session_state.user_query})
             st.session_state.user_query = "" 
 
-    # --- 5. STICKY FOOTER ---
+    # --- 5. STICKY FOOTER (ONE ROW FORCED) ---
     with st.container(border=True):
-        # Layout: [ + ] [ Input ] [ Cam ] [ Mic ] [ Lang ]
-        # Adjusted columns: Mic is now much closer to Cam (smaller gap), Lang is bigger
-        c_plus, c_input, c_cam, c_mic, c_lang = st.columns([0.6, 4.4, 0.7, 0.7, 2.0])
+        # Layout: [ + ] [ Input (Wide) ] [ Cam ] [ Mic ]
+        # WE REMOVED LANGUAGE FROM HERE TO SAVE SPACE
+        c_plus, c_input, c_cam, c_mic = st.columns([0.6, 5.5, 0.7, 0.7])
         
         with c_plus:
             with st.popover("➕", use_container_width=True):
@@ -661,12 +681,6 @@ def patient_app():
                 v_txt = speech_to_text(language='en', start_prompt="🎙️", stop_prompt="🛑", just_once=True, key='STT')
             else:
                 v_txt = None
-                
-        with c_lang:
-            # Expanded Language Selector with Full Names
-            sel_lang = st.selectbox("Lg", ["English", "Hindi", "Tamil", "Telugu"], key="lang_select", label_visibility="collapsed")
-            lang_map = {"English":"en-US", "Hindi":"hi-IN", "Tamil":"ta-IN", "Telugu":"te-IN"}
-            actual_lang_code = lang_map[sel_lang]
 
     # --- PROCESS INPUTS ---
     external_input = None
@@ -692,10 +706,14 @@ def patient_app():
                     try:
                         hist = get_medical_history_context(st.session_state.username)
                         model = genai.GenerativeModel('gemini-2.5-flash')
+                        
+                        # Get lang from header if available, else default
+                        selected_language = st.session_state.get("lang_header", "En")
+                        
                         prompt = f"""
                         Act as {APP_NAME}, a medical expert. Patient: {st.session_state.name}.
                         History: {hist}. Query: {user_msg}.
-                        Output Language: {sel_lang} (Translate response).
+                        Output Language Code: {selected_language} (Translate response).
                         If medical: Give Cause, Precautions, OTC Meds, Doctor Type.
                         If casual: Just chat nicely.
                         """
