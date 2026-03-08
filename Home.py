@@ -58,7 +58,7 @@ genai.configure(api_key=my_api_key)
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'medical_history.db')
 
-# --- 🎬 ANIMATIONS LOADER ---
+# --- 🎬 ANIMATIONS ---
 def load_lottieurl(url):
     if not LOTTIE_AVAILABLE: return None
     try:
@@ -69,80 +69,100 @@ def load_lottieurl(url):
 
 lottie_orb = load_lottieurl("https://lottie.host/5a889496-5273-41c0-827d-78363717df3f/M387N9O2Q2.json")
 
-# --- 🎨 SKETCH-STYLE CSS ---
+# --- 🎨 UNIFIED SEARCH BAR CSS ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
     html, body, [class*="css"] { font-family: 'Inter', sans-serif; background-color: #FFFFFF; }
     .stApp { background-color: #FFFFFF; }
 
-    /* Show the top bar so the Menu (Double Arrow) is visible */
-    header {visibility: visible !important; background-color: transparent !important;}
-    #MainMenu {visibility: visible;}
+    /* Hide standard header/footer */
+    #MainMenu {visibility: visible;} /* Keep visible for Sidebar Double Arrow */
     footer {visibility: hidden;}
+    header {visibility: visible; background: transparent;}
 
-    /* 🟢 VERTICAL SKETCH BUTTONS */
-    div.stButton > button {
+    /* 🟢 VERTICAL SKETCH BUTTONS (Main Menu) */
+    .sketch-btn button {
         width: 100% !important;
-        border-radius: 25px !important;
-        border: 2px solid #000000 !important; /* Sketch style border */
+        border-radius: 20px !important;
+        border: 2px solid #333 !important;
         background-color: #FFFFFF !important;
-        color: #000000 !important;
+        color: #000 !important;
         font-weight: 600 !important;
         font-size: 18px !important;
-        padding: 10px 20px !important;
-        margin-bottom: 10px !important;
+        padding: 10px 0px !important;
         box-shadow: 2px 2px 0px rgba(0,0,0,0.1) !important;
-        transition: transform 0.1s;
-    }
-    div.stButton > button:active {
-        transform: scale(0.98);
-        box-shadow: none !important;
+        margin-bottom: 8px !important;
     }
     
-    /* 🔴 SOS Button Override */
+    /* 🔴 SOS Button */
     div.stButton > button[kind="primary"] {
         background-color: #EF4444 !important;
         border: none !important;
         color: white !important;
-        box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4) !important;
+        box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4) !important;
     }
 
     /* 💬 Chat Bubbles */
     .stChatMessage[data-testid="stChatMessageUser"] { 
         background-color: #E3F2FD; 
         color: #000; 
-        border-radius: 20px 20px 0px 20px;
-        border: 1px solid #BBDEFB;
+        border-radius: 15px 15px 0px 15px;
     }
     .stChatMessage[data-testid="stChatMessageAssistant"] { 
         background-color: #FFFFFF; 
         border: 1px solid #E0E0E0;
         color: #000; 
-        border-radius: 20px 20px 20px 0px;
+        border-radius: 15px 15px 15px 0px;
     }
 
-    /* 📱 FOOTER STYLING */
-    div[data-testid="stBottomBlock"] {
-        background-color: #FFFFFF;
-        padding-bottom: 15px;
-        padding-top: 10px;
-        border-top: 1px solid #F0F0F0;
-    }
+    /* ------------------------------------------------ */
+    /* 🚀 THE MAGIC: UNIFIED SEARCH BAR STYLING */
+    /* ------------------------------------------------ */
     
-    /* INPUT FIELD - SKETCH STYLE */
+    /* 1. The Container that acts as the "Bar" */
+    .search-container {
+        border: 2px solid #333;
+        border-radius: 30px;
+        background-color: white;
+        padding: 2px 5px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    /* 2. Remove Border from the actual Input Field so it blends in */
     div[data-testid="stTextInput"] input {
-        border-radius: 15px !important;
-        border: 2px solid #000000 !important;
-        padding-left: 15px;
-        color: #000;
+        border: none !important;
+        box-shadow: none !important;
+        background-color: transparent !important;
+        padding-left: 10px;
     }
     
-    /* Language Button Specifics */
+    /* 3. Style the Icons (Cam/Mic) to look like they are inside */
+    div[data-testid="stBottomBlock"] button {
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        color: #555 !important;
+        font-size: 20px !important;
+    }
+    div[data-testid="stBottomBlock"] button:hover {
+        background: #f0f0f0 !important;
+        border-radius: 50% !important;
+    }
+
+    /* 4. Language Selector Styling */
     div[data-testid="stSelectbox"] > div > div {
         border-radius: 20px !important;
-        border: 2px solid #000 !important;
-        background-color: #FFF !important;
+        border: 2px solid #333 !important;
+        background-color: white !important;
+    }
+
+    /* 📱 FOOTER POSITIONING */
+    div[data-testid="stBottomBlock"] {
+        padding-bottom: 15px;
+        background-color: white;
+        border-top: 1px solid #f0f0f0;
     }
 
 </style>
@@ -568,13 +588,13 @@ def login_screen():
 
 # --- PATIENT APP ---
 def patient_app():
-    # --- SIDEBAR (The "Menu" Logic from Sketch) ---
+    # --- SIDEBAR (IMAGE DETAILS MENU) ---
     with st.sidebar:
         st.markdown(f"### {APP_ICON} **{APP_NAME}**")
         side_name = st.session_state.name if st.session_state.name else st.session_state.username
         st.caption(f"User: {side_name}")
         
-        # Profile & Important Features in Menu
+        # Details inside the "Double Arrow" menu
         if st.button("👤 My Profile", use_container_width=True): profile_modal()
         if st.button("📜 Full History", use_container_width=True): full_history_modal()
         if st.button("🚨 SOS EMERGENCY", type="primary", use_container_width=True): sos_modal()
@@ -585,13 +605,12 @@ def patient_app():
 
     # --- MAIN CONTENT AREA ---
     
-    # 1. HEADER (Hello Name - Centered/Left)
+    # 1. CENTERED HEADER (Sketch Style)
     if not st.session_state.messages:
-        # Create a container for the header to match sketch
         st.markdown(f"""
-        <div style="padding-top: 10px; margin-bottom: 20px;">
-            <h1 style='color: #000; font-size: 32px; font-weight: 600; margin-bottom: 0;'>Hello, {st.session_state.name.split()[0]}</h1>
-            <h3 style='color: #333; font-weight: 400; font-size: 20px; margin-top: 5px;'>How can I assist today?</h3>
+        <div style="text-align: center; padding-top: 10px; margin-bottom: 20px;">
+            <h1 style='color: #000; font-size: 2.5rem; font-family: "Courier New", monospace; margin-bottom: 0;'>Hello, {st.session_state.name.split()[0]}</h1>
+            <h3 style='color: #333; font-weight: 400; font-size: 1.2rem; font-family: "Courier New", monospace; margin-top: 5px;'>How can I assist you today?</h3>
         </div>
         """, unsafe_allow_html=True)
 
@@ -607,15 +626,18 @@ def patient_app():
     # 3. VERTICAL BUTTONS (SKETCH STYLE)
     # Only show if no chat messages
     if not st.session_state.messages:
-        # Create a narrow centered column for the buttons to look like the sketch
+        # Narrow column to match sketch width
         c_left, c_mid, c_right = st.columns([0.5, 3, 0.5])
         with c_mid:
+            # Add custom class for sketch styling
+            st.markdown('<div class="sketch-btn">', unsafe_allow_html=True)
             if st.button("💊 Medicine"): medicine_modal()
             if st.button("⚖️ BMI Calculator"): bmi_modal()
             if st.button("🚑 First Aid"): first_aid_modal()
             if st.button("📄 Digitizer"): prescription_modal()
             if st.button("🥗 Health Plan"): health_plan_modal()
             if st.button("🏆 Streak"): gamification_modal()
+            st.markdown('</div>', unsafe_allow_html=True)
 
     # --- SPACER ---
     st.markdown("<div style='height: 150px;'></div>", unsafe_allow_html=True)
@@ -626,38 +648,49 @@ def patient_app():
             st.session_state.messages.append({"role": "user", "content": st.session_state.user_query})
             st.session_state.user_query = "" 
 
-    # --- 5. STICKY FOOTER & LANGUAGE ---
+    # --- 5. STICKY FOOTER & LANGUAGE (SKETCH STYLE) ---
     
     # Language floating right above the footer
-    if not st.session_state.messages: # Hide language if chatting to keep clean? Or keep it? Sketch shows it.
-        # Use a container fixed near bottom but above footer
-        # Streamlit doesn't support easy fixed elements without bottom container.
-        # We will put it INSIDE the sticky footer container but on a row above the input.
+    if not st.session_state.messages:
+        # Floating language button like sketch
         pass 
 
-    with st.container(border=True):
-        # Row 1: Language (Right Aligned like sketch)
+    with st.container(border=False):
+        # We need a wrapper to hold the language button and the input bar
+        st.markdown('<div class="footer-wrapper">', unsafe_allow_html=True)
+        
+        # 1. LANGUAGE BUTTON (Floating Right)
         c_spacer, c_lang = st.columns([3, 1.5])
         with c_lang:
              sel_lang = st.selectbox("Language", ["English", "Hindi", "Tamil", "Telugu"], key="lang_select", label_visibility="collapsed")
              lang_map = {"English":"en-US", "Hindi":"hi-IN", "Tamil":"ta-IN", "Telugu":"te-IN"}
              actual_lang_code = lang_map[sel_lang]
 
-        # Row 2: Input + Cam + Mic
-        # Layout: [ Input (Wide) ] [ Cam ] [ Mic ]
-        c_input, c_cam, c_mic = st.columns([5, 0.8, 0.8])
+        # 2. UNIFIED SEARCH BAR (Input + Cam + Mic)
+        # We use a container with a border to mimic the single box look
+        with st.container():
+            st.markdown('<div class="search-container">', unsafe_allow_html=True)
+            c_plus, c_input, c_cam, c_mic = st.columns([0.5, 5, 0.5, 0.5])
+            
+            with c_plus:
+                # "+" Button inside (using popover for cleaner look)
+                with st.popover("➕", use_container_width=True):
+                    if st.button("Clean Chat"): st.session_state.messages = []; st.rerun()
+
+            with c_input:
+                st.text_input("Msg...", placeholder=f"Ask {APP_NAME}...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
+            
+            with c_cam:
+                if st.button("📷", key="cam_btn"): st.session_state.show_camera = not st.session_state.show_camera; st.rerun()
+            
+            with c_mic:
+                if MIC_AVAILABLE:
+                    v_txt = speech_to_text(language='en', start_prompt="🎙️", stop_prompt="🛑", just_once=True, key='STT')
+                else:
+                    v_txt = None
+            st.markdown('</div>', unsafe_allow_html=True)
         
-        with c_input:
-            st.text_input("Msg...", placeholder=f"Ask {APP_NAME}...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
-        
-        with c_cam:
-            if st.button("📷", key="cam_btn"): st.session_state.show_camera = not st.session_state.show_camera; st.rerun()
-        
-        with c_mic:
-            if MIC_AVAILABLE:
-                v_txt = speech_to_text(language='en', start_prompt="🎙️", stop_prompt="🛑", just_once=True, key='STT')
-            else:
-                v_txt = None
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # --- PROCESS INPUTS ---
     external_input = None
