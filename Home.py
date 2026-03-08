@@ -25,7 +25,7 @@ try:
 except ImportError:
     MIC_AVAILABLE = False
 
-# --- 🎬 INITIALIZE GLOBALS (Prevents NameError) ---
+# --- 🎬 INITIALIZE GLOBALS ---
 lottie_orb = None 
 
 # ==========================================
@@ -67,63 +67,89 @@ def load_lottieurl(url):
         return r.json()
     except: return None
 
-# Load Animation
 lottie_orb = load_lottieurl("https://lottie.host/5a889496-5273-41c0-827d-78363717df3f/M387N9O2Q2.json")
 
-# --- 🎨 ADVANCED CSS ---
+# --- 🎨 GEMINI-STYLE CSS ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-    html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+    html, body, [class*="css"] { font-family: 'Inter', sans-serif; background-color: #FFFFFF; }
     .stApp { background-color: #FFFFFF; }
 
-    /* Hide default elements */
+    /* Hide standard header/footer */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    /* Chat Bubbles */
-    .stChatMessage[data-testid="stChatMessageUser"] { 
-        background-color: #E0F2FE; 
-        color: #000; 
-        border-radius: 15px 15px 0px 15px;
-        padding: 10px;
+    /* 🟢 GEMINI STYLE BUTTONS (Pills) */
+    div.stButton > button {
+        text-align: left !important;
+        display: flex;
+        align-items: center;
+        width: auto !important; /* Let them be pill sized, not full width if possible */
+        min-width: 180px;
+        padding: 12px 20px !important;
+        border-radius: 25px !important;
+        background-color: #F0F4F9 !important; /* Google Light Grey */
+        border: none !important;
+        color: #1F1F1F !important;
+        font-weight: 500 !important;
+        font-size: 16px !important;
+        box-shadow: none !important;
+        margin-bottom: 8px !important;
+        transition: background 0.2s;
     }
-    .stChatMessage[data-testid="stChatMessageAssistant"] { 
-        background-color: #F3F4F6; 
-        border: 1px solid #E5E7EB; 
-        color: #000; 
-        border-radius: 15px 15px 15px 0px;
-        padding: 10px;
+    div.stButton > button:hover {
+        background-color: #E1E5EA !important;
+    }
+    
+    /* 🔴 SOS Button Override */
+    div.stButton > button[kind="primary"] {
+        background-color: #EF4444 !important;
+        color: white !important;
+        text-align: center !important;
+        width: 100% !important;
+        animation: pulse 2s infinite;
     }
 
-    /* 🔘 MAIN BUTTONS (Medicine/BMI) */
-    .big-button button {
-        height: 70px !important;
-        width: 100% !important;
-        font-size: 18px !important;
-        font-weight: 600 !important;
-        border-radius: 15px !important;
-        background-color: white !important;
-        border: 2px solid #6a11cb !important;
-        color: #6a11cb !important;
-        box-shadow: 0 4px 6px rgba(106, 17, 203, 0.1) !important;
+    /* 💬 Chat Bubbles */
+    .stChatMessage[data-testid="stChatMessageUser"] { 
+        background-color: #F0F4F9; 
+        color: #000; 
+        border-radius: 20px 20px 5px 20px;
     }
-    
-    /* 📱 MOBILE FOOTER */
+    .stChatMessage[data-testid="stChatMessageAssistant"] { 
+        background-color: #FFFFFF; 
+        color: #000; 
+    }
+
+    /* 📱 FOOTER STYLING */
     div[data-testid="stBottomBlock"] {
-        padding-bottom: 0;
-        background-color: white;
+        background-color: #FFFFFF;
+        padding-bottom: 10px;
     }
     
-    /* Sidebar Spacer */
-    .sidebar-spacer {
-        height: 45vh; 
-    }
-    
-    /* Input Field Styling */
+    /* Input Field - Rounded like Gemini */
     div[data-testid="stTextInput"] input {
-        border-radius: 20px;
+        border-radius: 30px !important;
+        background-color: #F0F4F9 !important;
+        border: none !important;
+        padding-left: 20px;
+    }
+    
+    /* Profile Circle */
+    .profile-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #6a11cb;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 18px;
+        float: right;
     }
 
 </style>
@@ -558,9 +584,6 @@ def patient_app():
         if st.button("➕ New Chat", use_container_width=True): st.session_state.messages = []; st.rerun()
         if st.button("📜 Full History", use_container_width=True): full_history_modal()
         
-        # PUSH TO BOTTOM
-        st.markdown("<div class='sidebar-spacer'></div>", unsafe_allow_html=True)
-        
         st.markdown("---")
         if st.button("👤 My Profile", use_container_width=True): profile_modal()
         if st.button("Log Out", use_container_width=True): 
@@ -568,14 +591,22 @@ def patient_app():
 
     # --- MAIN CONTENT AREA ---
     
-    # 1. CENTERED HEADER (Greeting)
+    # 1. HEADER (Gemini Style: Left Text + Right Profile)
     if not st.session_state.messages:
-        st.markdown(f"""
-        <div style="text-align: center; margin-top: 20px;">
-            <h1 style='color: #6a11cb; font-size: 2.5rem; margin-bottom: 0;'>Hello, {st.session_state.name.split()[0]}</h1>
-            <h3 style='color: #666; font-weight: 400; font-size: 1.2rem; margin-top: 5px;'>How can I assist you today?</h3>
-        </div>
-        """, unsafe_allow_html=True)
+        # Create a container for the header
+        c_text, c_profile = st.columns([5, 1])
+        with c_text:
+            first_name = st.session_state.name.split()[0]
+            st.markdown(f"""
+            <div style="padding-top: 10px;">
+                <h2 style='color: #444746; font-size: 24px; margin-bottom: 0;'>Hi {first_name}</h2>
+                <h1 style='background: -webkit-linear-gradient(45deg, #4285F4, #9B72CB, #D96570); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 36px; margin-top: 0;'>Where should we start?</h1>
+            </div>
+            """, unsafe_allow_html=True)
+        with c_profile:
+            # Simulate Profile Circle
+            initial = first_name[0].upper() if first_name else "U"
+            st.markdown(f'<div class="profile-icon">{initial}</div>', unsafe_allow_html=True)
 
     # 2. CHAT HISTORY
     chat_container = st.container()
@@ -586,22 +617,21 @@ def patient_app():
                 if "https://www.google.com/maps/search/SPECIALIST_TYPE+near+me" in m["content"] and m["role"] == "assistant":
                     st.link_button("📍 Find Specialist Near Me", m["content"].split("(")[-1].split(")")[0])
 
-    # 3. VISIBLE FEATURE BUTTONS (PUSHED DOWN)
+    # 3. FEATURE PILLS (GEMINI STYLE)
     # Only show if no chat messages
     if not st.session_state.messages:
-        # Extra spacing to push buttons lower
-        st.markdown("<div style='height: 25vh;'></div>", unsafe_allow_html=True)
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown('<div class="big-button">', unsafe_allow_html=True)
-            if st.button("💊 Medicine", use_container_width=True): medicine_modal()
-            st.markdown('</div>', unsafe_allow_html=True)
-        with c2:
-            st.markdown('<div class="big-button">', unsafe_allow_html=True)
-            if st.button("⚖️ BMI", use_container_width=True): bmi_modal()
-            st.markdown('</div>', unsafe_allow_html=True)
-    else:
-        st.markdown("<div style='height: 100px;'></div>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # We list them vertically like the screenshot
+        if st.button("💊 Medicine Reminder"): medicine_modal()
+        if st.button("⚖️ BMI Calculator"): bmi_modal()
+        if st.button("🚑 First Aid Guide"): first_aid_modal()
+        if st.button("📄 Prescription Digitizer"): prescription_modal()
+        if st.button("🥗 AI Health Plan"): health_plan_modal()
+        if st.button("🏆 Health Streak"): gamification_modal()
+
+    # --- SPACER ---
+    st.markdown("<div style='height: 120px;'></div>", unsafe_allow_html=True)
 
     # --- LOGIC FOR INPUT ---
     def handle_user_input():
@@ -618,10 +648,7 @@ def patient_app():
         with c_plus:
             with st.popover("➕", use_container_width=True):
                 st.markdown("**Features**")
-                if st.button("🚑 First Aid", use_container_width=True): first_aid_modal()
-                if st.button("📄 Digitizer", use_container_width=True): prescription_modal()
-                if st.button("🥗 AI Plan", use_container_width=True): health_plan_modal()
-                if st.button("🏆 Streak", use_container_width=True): gamification_modal()
+                if st.button("Clean Chat"): st.session_state.messages = []; st.rerun()
         
         with c_input:
             st.text_input("Msg...", placeholder=f"Ask {APP_NAME}...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
