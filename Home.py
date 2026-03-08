@@ -25,7 +25,7 @@ try:
 except ImportError:
     MIC_AVAILABLE = False
 
-# --- 🎬 INITIALIZE GLOBALS (Prevents NameError) ---
+# --- 🎬 INITIALIZE GLOBALS ---
 lottie_orb = None 
 
 # ==========================================
@@ -58,7 +58,7 @@ genai.configure(api_key=my_api_key)
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'medical_history.db')
 
-# --- 🎬 ANIMATIONS LOADER ---
+# --- 🎬 ANIMATIONS ---
 def load_lottieurl(url):
     if not LOTTIE_AVAILABLE: return None
     try:
@@ -67,32 +67,36 @@ def load_lottieurl(url):
         return r.json()
     except: return None
 
-# Load Animation (Safe Mode)
 lottie_orb = load_lottieurl("https://lottie.host/5a889496-5273-41c0-827d-78363717df3f/M387N9O2Q2.json")
 
-# --- 🎨 CSS STYLING (Mobile & Unified Bar) ---
+# --- 🎨 V50 MOBILE CSS ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-    html, body, [class*="css"] { font-family: 'Inter', sans-serif; background-color: #FFFFFF; }
-    .stApp { background-color: #FFFFFF; }
+    html, body, [class*="css"] { font-family: 'Inter', sans-serif; background-color: #FAFAFA; }
+    .stApp { background-color: #FAFAFA; }
 
     /* Hide standard header/footer */
     header {visibility: visible; background: transparent;}
     footer {visibility: hidden;}
 
-    /* 🟢 VERTICAL SKETCH BUTTONS */
-    .sketch-btn button {
+    /* 🟢 FEATURE BUTTONS (Soft Pills) */
+    .feature-btn button {
         width: 100% !important;
         border-radius: 20px !important;
-        border: 2px solid #333 !important;
+        border: 1px solid #E5E7EB !important;
         background-color: #FFFFFF !important;
-        color: #000 !important;
-        font-weight: 600 !important;
-        font-size: 18px !important;
-        padding: 10px 0px !important;
-        box-shadow: 2px 2px 0px rgba(0,0,0,0.1) !important;
-        margin-bottom: 8px !important;
+        color: #333 !important;
+        font-weight: 500 !important;
+        font-size: 16px !important;
+        padding: 12px 0px !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03) !important;
+        margin-bottom: 10px !important;
+        transition: all 0.2s;
+    }
+    .feature-btn button:active {
+        transform: scale(0.98);
+        background-color: #F3F4F6 !important;
     }
     
     /* 🔴 SOS Button */
@@ -100,79 +104,82 @@ st.markdown("""
         background-color: #EF4444 !important;
         border: none !important;
         color: white !important;
-        box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4) !important;
+        box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3) !important;
     }
 
     /* 💬 Chat Bubbles */
     .stChatMessage[data-testid="stChatMessageUser"] { 
-        background-color: #E3F2FD; 
-        color: #000; 
-        border-radius: 15px 15px 0px 15px;
+        background-color: #DBEAFE; 
+        color: #1E3A8A; 
+        border-radius: 18px 18px 2px 18px;
     }
     .stChatMessage[data-testid="stChatMessageAssistant"] { 
         background-color: #FFFFFF; 
-        border: 1px solid #E0E0E0;
-        color: #000; 
-        border-radius: 15px 15px 15px 0px;
+        border: 1px solid #E5E7EB;
+        color: #374151; 
+        border-radius: 18px 18px 18px 2px;
     }
 
     /* ------------------------------------------------ */
-    /* 🚀 UNIFIED SEARCH BAR STYLING */
+    /* 🚀 UNIFIED SEARCH BAR V50 (Seamless Integration) */
     /* ------------------------------------------------ */
     
-    /* 1. The Outer Container (The Border) */
-    .search-container {
-        border: 2px solid #333; 
+    /* 1. The Container (The Bar itself) */
+    .search-bar-container {
+        background-color: #FFFFFF;
+        border: 1px solid #D1D5DB;
         border-radius: 30px;
-        background-color: white;
-        padding: 4px 10px;
-        margin-bottom: 5px;
+        padding: 2px 5px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         display: flex;
         align-items: center;
     }
 
-    /* 2. The Input Field (Borderless) */
-    div[data-testid="stTextInput"] {
-        width: 100%;
-    }
+    /* 2. Input Field (Transparent & Borderless) */
     div[data-testid="stTextInput"] input {
         border: none !important;
         box-shadow: none !important;
         background-color: transparent !important;
-        padding-left: 5px;
-        font-size: 16px;
+        padding-left: 15px !important;
+        font-size: 16px !important;
     }
-    
-    /* 3. The Icons (Camera/Mic) Styling inside the bar */
-    div[data-testid="stBottomBlock"] button {
+    div[data-testid="stTextInput"] {
+        background-color: transparent !important;
+    }
+
+    /* 3. Icons (Cam & Mic) inside the bar */
+    .icon-btn button {
         border: none !important;
         background: transparent !important;
-        color: #555 !important;
+        color: #6B7280 !important;
         padding: 0 !important;
-        font-size: 20px !important;
+        font-size: 1.2rem !important;
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 40px !important;
         width: 40px !important;
+        height: 40px !important;
     }
-    div[data-testid="stBottomBlock"] button:hover {
-        background-color: #f0f0f0 !important;
+    .icon-btn button:hover {
+        background-color: #F3F4F6 !important;
         border-radius: 50% !important;
+        color: #6a11cb !important;
     }
 
-    /* 4. Language Selector Styling */
+    /* 4. Language Selector (Floating Pill) */
     div[data-testid="stSelectbox"] > div > div {
         border-radius: 20px !important;
-        border: 2px solid #333 !important;
+        border: 1px solid #E5E7EB !important;
         background-color: white !important;
+        min-height: 35px !important;
     }
 
-    /* 📱 FOOTER POSITIONING */
+    /* 📱 FOOTER ALIGNMENT */
     div[data-testid="stBottomBlock"] {
         padding-bottom: 20px;
-        background-color: white;
-        border-top: 1px solid #f0f0f0;
+        padding-top: 10px;
+        background-color: #FAFAFA;
+        border-top: 1px solid #F3F4F6;
     }
 
 </style>
@@ -558,7 +565,7 @@ def login_screen():
     col1, col2, col3 = st.columns([1,1.5,1])
     with col2:
         st.markdown("<br><br>", unsafe_allow_html=True)
-        # FIXED: Safety check for lottie
+        # Safety check for lottie
         if LOTTIE_AVAILABLE and lottie_orb: 
             st_lottie(lottie_orb, height=120, key="login_anim")
             
@@ -598,13 +605,12 @@ def login_screen():
 
 # --- PATIENT APP ---
 def patient_app():
-    # --- SIDEBAR (IMAGE DETAILS MENU) ---
+    # --- SIDEBAR ---
     with st.sidebar:
         st.markdown(f"### {APP_ICON} **{APP_NAME}**")
         side_name = st.session_state.name if st.session_state.name else st.session_state.username
         st.caption(f"User: {side_name}")
         
-        # Details inside the "Double Arrow" menu
         if st.button("👤 My Profile", use_container_width=True): profile_modal()
         if st.button("📜 Full History", use_container_width=True): full_history_modal()
         if st.button("🚨 SOS EMERGENCY", type="primary", use_container_width=True): sos_modal()
@@ -615,12 +621,12 @@ def patient_app():
 
     # --- MAIN CONTENT AREA ---
     
-    # 1. CENTERED HEADER (Sketch Style)
+    # 1. HEADER (Clean Centered)
     if not st.session_state.messages:
         st.markdown(f"""
-        <div style="text-align: center; padding-top: 10px; margin-bottom: 20px;">
-            <h1 style='color: #000; font-size: 2.5rem; font-family: "Courier New", monospace; margin-bottom: 0;'>Hello, {st.session_state.name.split()[0]}</h1>
-            <h3 style='color: #333; font-weight: 400; font-size: 1.2rem; font-family: "Courier New", monospace; margin-top: 5px;'>How can I assist you today?</h3>
+        <div style="text-align: center; padding-top: 15px; margin-bottom: 25px;">
+            <h1 style='color: #111; font-size: 2.2rem; font-weight: 700; margin-bottom: 0;'>Hello, {st.session_state.name.split()[0]}</h1>
+            <h3 style='color: #666; font-weight: 400; font-size: 1.1rem; margin-top: 5px;'>How can I assist you today?</h3>
         </div>
         """, unsafe_allow_html=True)
 
@@ -633,14 +639,13 @@ def patient_app():
                 if "https://www.google.com/maps/search/SPECIALIST_TYPE+near+me" in m["content"] and m["role"] == "assistant":
                     st.link_button("📍 Find Specialist Near Me", m["content"].split("(")[-1].split(")")[0])
 
-    # 3. VERTICAL BUTTONS (SKETCH STYLE)
-    # Only show if no chat messages
+    # 3. VERTICAL BUTTONS (MOBILE STYLE)
     if not st.session_state.messages:
-        # Narrow column to match sketch width
+        # Centered narrow column for cleaner look
         c_left, c_mid, c_right = st.columns([0.5, 3, 0.5])
         with c_mid:
-            # Add custom class for sketch styling
-            st.markdown('<div class="sketch-btn">', unsafe_allow_html=True)
+            # Wrap buttons in the 'feature-btn' class defined in CSS
+            st.markdown('<div class="feature-btn">', unsafe_allow_html=True)
             if st.button("💊 Medicine"): medicine_modal()
             if st.button("⚖️ BMI Calculator"): bmi_modal()
             if st.button("🚑 First Aid"): first_aid_modal()
@@ -658,47 +663,48 @@ def patient_app():
             st.session_state.messages.append({"role": "user", "content": st.session_state.user_query})
             st.session_state.user_query = "" 
 
-    # --- 5. STICKY FOOTER & LANGUAGE (CLEAN STYLE) ---
+    # --- 5. STICKY FOOTER (UNIFIED BAR) ---
     
     with st.container(border=False):
-        # Wrapper to hold floating language & search bar
-        st.markdown('<div class="footer-wrapper">', unsafe_allow_html=True)
         
-        # 1. LANGUAGE BUTTON (Floating Right, above input)
+        # 1. LANGUAGE BUTTON (Floating Right)
         c_spacer, c_lang = st.columns([3, 1.5])
         with c_lang:
              sel_lang = st.selectbox("Language", ["English", "Hindi", "Tamil", "Telugu"], key="lang_select", label_visibility="collapsed")
              lang_map = {"English":"en-US", "Hindi":"hi-IN", "Tamil":"ta-IN", "Telugu":"te-IN"}
              actual_lang_code = lang_map[sel_lang]
 
-        # 2. UNIFIED SEARCH BAR (Input + Cam + Mic)
-        # We use a container with a border to mimic the single box look
-        with st.container():
-            st.markdown('<div class="search-container">', unsafe_allow_html=True)
-            
-            # Layout: [ Input (Very Wide) ] [ Cam ] [ Mic ]
-            # Using 8:1:1 ratio for nice spacing
-            c_input, c_cam, c_mic = st.columns([8, 1, 1])
-            
-            with c_input:
-                st.text_input("Msg...", placeholder=f"Ask {APP_NAME}...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
-            
-            with c_cam:
-                if st.button("📷", key="cam_btn"): st.session_state.show_camera = not st.session_state.show_camera; st.rerun()
-            
-            with c_mic:
-                if MIC_AVAILABLE:
-                    v_txt = speech_to_text(language='en', start_prompt="🎙️", stop_prompt="🛑", just_once=True, key='STT')
-                else:
-                    v_txt = None
+        # 2. UNIFIED SEARCH BAR (Clean: Input + Cam + Mic)
+        # Using a div wrapper to style the whole row as one pill
+        st.markdown('<div class="search-bar-container">', unsafe_allow_html=True)
+        
+        # Use columns inside the styling wrapper
+        # Input gets 80% width, Cam & Mic get small slots at the end
+        c1, c2, c3 = st.columns([8, 1, 1])
+        
+        with c1:
+            st.text_input("Msg...", placeholder=f"Ask {APP_NAME}...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
+        
+        with c2:
+            st.markdown('<div class="icon-btn">', unsafe_allow_html=True)
+            if st.button("📷", key="cam_btn"): st.session_state.show_camera = not st.session_state.show_camera; st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
         
+        with c3:
+            st.markdown('<div class="icon-btn">', unsafe_allow_html=True)
+            if MIC_AVAILABLE:
+                v_txt = speech_to_text(language='en', start_prompt="🎙️", stop_prompt="🛑", just_once=True, key='STT')
+                if v_txt:
+                    st.session_state.user_query = v_txt
+                    handle_user_input()
+                    st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+            
         st.markdown('</div>', unsafe_allow_html=True)
 
     # --- PROCESS INPUTS ---
     external_input = None
-    if v_txt: external_input = v_txt
-    elif st.session_state.show_camera:
+    if st.session_state.show_camera:
         st.info("Camera Mode")
         cam = st.camera_input("Take Photo")
         if cam: 
