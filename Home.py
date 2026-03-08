@@ -25,7 +25,7 @@ try:
 except ImportError:
     MIC_AVAILABLE = False
 
-# --- 🎬 INITIALIZE GLOBALS ---
+# --- 🎬 INITIALIZE GLOBALS (Prevents NameError) ---
 lottie_orb = None 
 
 # ==========================================
@@ -58,7 +58,7 @@ genai.configure(api_key=my_api_key)
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'medical_history.db')
 
-# --- 🎬 ANIMATIONS ---
+# --- 🎬 ANIMATIONS LOADER ---
 def load_lottieurl(url):
     if not LOTTIE_AVAILABLE: return None
     try:
@@ -67,21 +67,21 @@ def load_lottieurl(url):
         return r.json()
     except: return None
 
+# Load Animation (Safe Mode)
 lottie_orb = load_lottieurl("https://lottie.host/5a889496-5273-41c0-827d-78363717df3f/M387N9O2Q2.json")
 
-# --- 🎨 ADVANCED CSS (Clean Search Bar) ---
+# --- 🎨 CSS STYLING (Mobile & Unified Bar) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
     html, body, [class*="css"] { font-family: 'Inter', sans-serif; background-color: #FFFFFF; }
     .stApp { background-color: #FFFFFF; }
 
-    /* Hide standard Streamlit header/footer elements */
+    /* Hide standard header/footer */
     header {visibility: visible; background: transparent;}
-    [data-testid="stHeader"] {background-color: rgba(0,0,0,0);}
     footer {visibility: hidden;}
 
-    /* 🟢 VERTICAL SKETCH BUTTONS (Main Menu) */
+    /* 🟢 VERTICAL SKETCH BUTTONS */
     .sketch-btn button {
         width: 100% !important;
         border-radius: 20px !important;
@@ -117,49 +117,52 @@ st.markdown("""
     }
 
     /* ------------------------------------------------ */
-    /* 🚀 THE MAGIC: UNIFIED SEARCH BAR STYLING */
+    /* 🚀 UNIFIED SEARCH BAR STYLING */
     /* ------------------------------------------------ */
     
-    /* 1. The Container that acts as the "Bar" (Rounded & Bordered) */
+    /* 1. The Outer Container (The Border) */
     .search-container {
         border: 2px solid #333; 
         border-radius: 30px;
         background-color: white;
-        padding: 2px 5px;
+        padding: 4px 10px;
         margin-bottom: 5px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Soft shadow */
+        display: flex;
+        align-items: center;
     }
 
-    /* 2. Remove default Streamlit input styling so it blends in */
+    /* 2. The Input Field (Borderless) */
+    div[data-testid="stTextInput"] {
+        width: 100%;
+    }
     div[data-testid="stTextInput"] input {
         border: none !important;
         box-shadow: none !important;
         background-color: transparent !important;
-        padding-left: 15px;
+        padding-left: 5px;
         font-size: 16px;
     }
     
-    /* 3. Style the Icons (Cam/Mic) to look like they are inside the bar */
-    div[data-testid="stBottomBlock"] [data-testid="stHorizontalBlock"] button {
+    /* 3. The Icons (Camera/Mic) Styling inside the bar */
+    div[data-testid="stBottomBlock"] button {
         border: none !important;
         background: transparent !important;
-        padding: 0 !important;
         color: #555 !important;
-        font-size: 22px !important;
-        width: 40px !important;
+        padding: 0 !important;
+        font-size: 20px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         height: 40px !important;
+        width: 40px !important;
     }
-    div[data-testid="stBottomBlock"] [data-testid="stHorizontalBlock"] button:hover {
-        background: #f0f0f0 !important;
+    div[data-testid="stBottomBlock"] button:hover {
+        background-color: #f0f0f0 !important;
         border-radius: 50% !important;
     }
-    
-    /* Remove labels/padding above search bar components */
-    [data-testid="stBottomBlock"] label { display: none !important; }
-    [data-testid="stBottomBlock"] div[data-testid="stVerticalBlock"] > div { padding: 0 !important; }
 
-    /* 4. Language Selector Styling (Above Footer) */
-    .lang-container div[data-testid="stSelectbox"] > div > div {
+    /* 4. Language Selector Styling */
+    div[data-testid="stSelectbox"] > div > div {
         border-radius: 20px !important;
         border: 2px solid #333 !important;
         background-color: white !important;
@@ -670,12 +673,12 @@ def patient_app():
 
         # 2. UNIFIED SEARCH BAR (Input + Cam + Mic)
         # We use a container with a border to mimic the single box look
-        # NO PLUS BUTTON HERE
         with st.container():
             st.markdown('<div class="search-container">', unsafe_allow_html=True)
             
             # Layout: [ Input (Very Wide) ] [ Cam ] [ Mic ]
-            c_input, c_cam, c_mic = st.columns([5, 0.5, 0.5])
+            # Using 8:1:1 ratio for nice spacing
+            c_input, c_cam, c_mic = st.columns([8, 1, 1])
             
             with c_input:
                 st.text_input("Msg...", placeholder=f"Ask {APP_NAME}...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
