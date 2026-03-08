@@ -1,0 +1,7 @@
+streamlit
+google-generativeai
+streamlit-lottie
+streamlit-mic-recorder
+Pillow
+pandas
+requests
