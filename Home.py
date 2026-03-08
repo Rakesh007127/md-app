@@ -69,119 +69,118 @@ def load_lottieurl(url):
 
 lottie_orb = load_lottieurl("https://lottie.host/5a889496-5273-41c0-827d-78363717df3f/M387N9O2Q2.json")
 
-# --- 🎨 MOBILE UI CSS ---
+# --- 🎨 ULTRA-CLEAN CSS ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-    html, body, [class*="css"] { font-family: 'Inter', sans-serif; background-color: #FAFAFA; }
-    .stApp { background-color: #FAFAFA; }
+    html, body, [class*="css"] { font-family: 'Inter', sans-serif; background-color: #FFFFFF; }
+    .stApp { background-color: #FFFFFF; }
 
-    /* Clean Header/Footer */
+    /* Hide Headers/Footers */
     header {visibility: visible; background: transparent;}
     footer {visibility: hidden;}
 
-    /* 🟢 MENU BUTTONS (Pills) */
+    /* 🟢 MENU BUTTONS (Soft Pills) */
     .feature-btn button {
         width: 100% !important;
-        border-radius: 20px !important;
-        border: 1px solid #E5E7EB !important;
-        background-color: #FFFFFF !important;
+        border-radius: 24px !important;
+        border: none !important;
+        background-color: #F8F9FA !important; /* Very light grey */
         color: #333 !important;
         font-weight: 500 !important;
         font-size: 16px !important;
-        padding: 12px 0px !important;
-        margin-bottom: 8px !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.03) !important;
+        padding: 14px 0px !important;
+        margin-bottom: 10px !important;
+        box-shadow: none !important; /* Flat look */
+        transition: all 0.2s;
     }
     .feature-btn button:hover {
-        border-color: #6a11cb !important;
+        background-color: #F0F2F5 !important;
         color: #6a11cb !important;
-        background-color: #F9FAFB !important;
+        transform: scale(1.01);
     }
     
     /* 🔴 SOS Button */
     div.stButton > button[kind="primary"] {
-        background-color: #EF4444 !important;
+        background-color: #FF5252 !important;
         border: none !important;
         color: white !important;
-        box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4) !important;
+        border-radius: 24px !important;
+        box-shadow: 0 4px 12px rgba(255, 82, 82, 0.3) !important;
     }
 
     /* 💬 Chat Bubbles */
     .stChatMessage[data-testid="stChatMessageUser"] { 
-        background-color: #E3F2FD; 
-        color: #000; 
-        border-radius: 15px 15px 2px 15px;
+        background-color: #EFF6FF; 
+        color: #1E40AF; 
+        border-radius: 20px 20px 4px 20px;
+        border: none;
     }
     .stChatMessage[data-testid="stChatMessageAssistant"] { 
-        background-color: #FFFFFF; 
-        border: 1px solid #E5E7EB;
-        color: #000; 
-        border-radius: 15px 15px 15px 2px;
+        background-color: #F9FAFB; 
+        border: 1px solid #F3F4F6;
+        color: #1F2937; 
+        border-radius: 20px 20px 20px 4px;
     }
 
     /* ---------------------------------------------------- */
-    /* 🚀 UNIFIED SEARCH BAR CSS                            */
+    /* 🚀 CLEAN FOOTER STYLING                              */
     /* ---------------------------------------------------- */
     
-    /* The Bar Container */
-    .search-bar-container {
-        border: 1px solid #D1D5DB;
-        border-radius: 30px;
-        background-color: white;
-        padding: 4px 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        display: flex;
-        align-items: center;
-        margin-top: 5px;
+    /* 1. Language Selector (Top Right Pill) */
+    div[data-testid="stSelectbox"] > div > div {
+        border-radius: 20px !important;
+        border: none !important;
+        background-color: #F3F4F6 !important;
+        font-size: 12px !important;
+        min-height: 30px !important;
+        padding: 0px 10px;
     }
 
-    /* Transparent Input */
-    div[data-testid="stTextInput"] input {
+    /* 2. Tool Buttons (Center Circles) */
+    .tool-btn button {
         border: none !important;
-        box-shadow: none !important;
-        background-color: transparent !important;
-        padding-left: 15px;
-        font-size: 16px;
-    }
-    div[data-testid="stTextInput"] {
-        background-color: transparent !important;
-    }
-
-    /* Icons (Cam/Mic) */
-    div[data-testid="stBottomBlock"] button {
-        border: none !important;
-        background: transparent !important;
-        color: #6B7280 !important;
-        font-size: 1.2rem !important;
-        padding: 0 !important;
-        width: 40px !important;
-        height: 40px !important;
+        border-radius: 50% !important;
+        width: 55px !important;
+        height: 55px !important;
+        background: #FFFFFF !important;
+        color: #555 !important;
+        font-size: 1.3rem !important;
         display: flex;
         align-items: center;
         justify-content: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important; /* Soft Float */
+        transition: all 0.2s;
     }
-    div[data-testid="stBottomBlock"] button:hover {
-        background-color: #F3F4F6 !important;
-        border-radius: 50% !important;
+    .tool-btn button:hover {
+        background-color: #FAF5FF !important; /* Light purple tint */
         color: #6a11cb !important;
+        transform: translateY(-2px);
     }
 
-    /* Language Selector Styling */
-    div[data-testid="stSelectbox"] > div > div {
-        border-radius: 15px !important;
-        border: 1px solid #E5E7EB !important;
-        background-color: white !important;
-        font-size: 14px !important;
-        min-height: 35px !important;
+    /* 3. Search Bar (Bottom Pill) */
+    div[data-testid="stTextInput"] input {
+        border-radius: 30px !important;
+        border: 1px solid #F0F0F0 !important;
+        background-color: #F8F9FA !important;
+        padding-left: 20px;
+        height: 55px;
+        color: #333;
+        font-size: 16px;
+        box-shadow: none !important;
+    }
+    div[data-testid="stTextInput"] input:focus {
+        background-color: #FFFFFF !important;
+        border: 1px solid #E0E0E0 !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
     }
 
-    /* Footer Positioning */
+    /* Footer Container Padding */
     div[data-testid="stBottomBlock"] {
-        padding-bottom: 20px;
-        padding-top: 5px;
-        background-color: #FAFAFA;
-        border-top: 1px solid #F3F4F6;
+        padding-bottom: 25px;
+        padding-top: 10px;
+        background-color: #FFFFFF;
+        /* No Top Border for cleaner look */
     }
 
 </style>
@@ -657,7 +656,7 @@ def patient_app():
             st.markdown('</div>', unsafe_allow_html=True)
 
     # --- SPACER ---
-    st.markdown("<div style='height: 150px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 180px;'></div>", unsafe_allow_html=True)
 
     # --- LOGIC FOR INPUT ---
     def handle_user_input():
@@ -665,33 +664,30 @@ def patient_app():
             st.session_state.messages.append({"role": "user", "content": st.session_state.user_query})
             st.session_state.user_query = "" 
 
-    # --- 5. STICKY FOOTER (UNIFIED BAR) ---
+    # --- 5. STICKY FOOTER (STACKED & CLEAN) ---
     
     with st.container(border=False):
         
-        # 1. LANGUAGE BUTTON (Floating Right) - MOVED HERE AS REQUESTED
+        # ROW 1: LANGUAGE (Floating Right)
         c_spacer, c_lang = st.columns([3, 1.5])
         with c_lang:
              sel_lang = st.selectbox("Language", ["English", "Hindi", "Tamil", "Telugu"], key="lang_select", label_visibility="collapsed")
              lang_map = {"English":"en-US", "Hindi":"hi-IN", "Tamil":"ta-IN", "Telugu":"te-IN"}
              actual_lang_code = lang_map[sel_lang]
 
-        # 2. UNIFIED SEARCH BAR (Container with border)
-        st.markdown('<div class="search-bar-container">', unsafe_allow_html=True)
-        
-        # Layout: [ Input (80%) ] [ Cam (10%) ] [ Mic (10%) ]
-        c_input, c_cam, c_mic = st.columns([8, 1, 1])
-        
-        with c_input:
-            st.text_input("Msg...", placeholder=f"Ask {APP_NAME}...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
+        # ROW 2: TOOLS (Cam & Mic centered)
+        # Centered narrow column for floating icons
+        c_l, c_cam, c_mic, c_r = st.columns([1.5, 1, 1, 1.5])
         
         with c_cam:
-            st.markdown('<div class="icon-btn">', unsafe_allow_html=True)
-            if st.button("📷", key="cam_btn"): st.session_state.show_camera = not st.session_state.show_camera; st.rerun()
+            st.markdown('<div class="tool-btn">', unsafe_allow_html=True)
+            if st.button("📷", key="cam_btn"): 
+                st.session_state.show_camera = not st.session_state.show_camera
+                st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
         
         with c_mic:
-            st.markdown('<div class="icon-btn">', unsafe_allow_html=True)
+            st.markdown('<div class="tool-btn">', unsafe_allow_html=True)
             if MIC_AVAILABLE:
                 v_txt = speech_to_text(language='en', start_prompt="🎙️", stop_prompt="🛑", just_once=True, key='STT')
                 if v_txt:
@@ -699,8 +695,9 @@ def patient_app():
                     handle_user_input()
                     st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
+
+        # ROW 3: SEARCH BAR (Full Width Pill)
+        st.text_input("Msg...", placeholder=f"Ask {APP_NAME}...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
 
     # --- PROCESS INPUTS ---
     external_input = None
@@ -726,7 +723,6 @@ def patient_app():
                         hist = get_medical_history_context(st.session_state.username)
                         model = genai.GenerativeModel('gemini-2.5-flash')
                         
-                        # Default language fallback if selector isn't rendered
                         try:
                             lang_code = lang_map[sel_lang]
                         except:
