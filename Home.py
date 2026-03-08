@@ -48,7 +48,6 @@ st.set_page_config(
 
 # --- 🛠️ API SETUP ---
 try:
-    # 👇👇 2. PASTE YOUR NEW GOOGLE API KEY HERE 👇👇
     my_api_key = st.secrets["GOOGLE_API_KEY"] 
 except:
     my_api_key = "AIzaSyDS0HBbT5Ktegf6TwtF0Vwc1HP2OGTUuVU"
@@ -421,6 +420,29 @@ def full_history_modal():
                 st.markdown(f"**Symptom:** {item[1]}"); st.info(f"**Advice:**\n{item[2]}")
     else: st.info("No history found.")
 
+# --- RESTORED PROFILE MODAL ---
+@st.dialog("👤 User Profile")
+def profile_modal():
+    st.write(f"**User:** {st.session_state.username}")
+    st.write(f"**Name:** {st.session_state.name}")
+    tab1, tab2 = st.tabs(["Edit Age", "Change Password"])
+    with tab1:
+        current_age_val = int(st.session_state.age) if st.session_state.age and st.session_state.age.isdigit() else 18
+        new_age = st.number_input("Update Age", min_value=1, max_value=120, value=current_age_val)
+        if st.button("Save Age"):
+            update_user_age(st.session_state.username, str(new_age)); st.session_state.age = str(new_age); st.success("Updated!"); time.sleep(1); st.rerun()
+    with tab2:
+        curr_pass = st.text_input("Current Password", type="password")
+        new_pass = st.text_input("New Password", type="password")
+        conf_pass = st.text_input("Confirm New Password", type="password")
+        if st.button("Update Password"):
+            if not curr_pass or not new_pass: st.warning("Please fill fields.")
+            elif new_pass != conf_pass: st.error("New passwords do not match.")
+            else:
+                if login_user(st.session_state.username, curr_pass):
+                    update_password(st.session_state.username, new_pass); st.success("Updated!")
+                else: st.error("Current password incorrect.")
+
 # --- LOGIN SCREEN ---
 def login_screen():
     col1, col2, col3 = st.columns([1,1.5,1])
@@ -468,55 +490,11 @@ def patient_app():
     # --- 🔒 APPLY APP CSS ONLY WHEN LOGGED IN (Isolates from Login) ---
     st.markdown("""
     <style>
-        /* 1. RESET ALL TEXT INPUT BORDERS inside the Footer */
-        div[data-testid="stBottomBlock"] div[data-testid="stTextInput"] input {
-            border: 0px solid transparent !important;
-            box-shadow: none !important;
-            background-color: transparent !important;
-            padding-left: 5px;
-            font-size: 16px;
-            color: #111;
-            height: 45px;
-        }
-        div[data-testid="stBottomBlock"] div[data-testid="stTextInput"] input:focus {
-            border: none !important;
-            box-shadow: none !important;
-            background-color: transparent !important;
-        }
+        /* 1. Global App Font */
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
+        html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; background-color: #FFFFFF; }
         
-        /* 2. Style the CONTAINER that holds the input + icons */
-        /* This effectively creates the "Pill" shape around them all */
-        div[data-testid="stBottomBlock"] [data-testid="stHorizontalBlock"] {
-            background-color: #F8F9FA; 
-            border-radius: 30px;
-            border: 1px solid #E5E7EB;
-            padding: 4px 10px;
-            align-items: center;
-            gap: 0px !important;
-        }
-
-        /* 3. Icons (Transparent) */
-        div[data-testid="stBottomBlock"] button {
-            border: none !important;
-            background: transparent !important;
-            color: #6B7280 !important;
-            font-size: 1.2rem !important;
-            padding: 0 !important;
-            width: 40px !important;
-            height: 40px !important;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 !important;
-            box-shadow: none !important;
-        }
-        div[data-testid="stBottomBlock"] button:hover {
-            background-color: #E5E7EB !important;
-            border-radius: 50% !important;
-            color: #2563EB !important;
-        }
-
-        /* 4. Sticky Footer */
+        /* 2. Sticky Footer Container */
         div[data-testid="stBottomBlock"] {
             position: fixed;
             bottom: 0;
@@ -525,22 +503,59 @@ def patient_app():
             padding-bottom: 20px;
             padding-top: 10px;
             background-color: #FFFFFF;
-            border-top: 1px solid #F9FAFB;
+            border-top: 1px solid #F3F4F6;
             z-index: 999;
         }
-        
-        /* 5. Language Selector */
+
+        /* 3. Text Input Styling (Standard & Clean) */
+        div[data-testid="stBottomBlock"] div[data-testid="stTextInput"] input {
+            border: 1px solid #E5E7EB !important;
+            border-radius: 25px !important;
+            padding-left: 20px;
+            font-size: 16px;
+            color: #111;
+            height: 50px;
+            background-color: #FFFFFF !important;
+        }
+        div[data-testid="stBottomBlock"] div[data-testid="stTextInput"] input:focus {
+            border-color: #6a11cb !important;
+            box-shadow: 0 0 0 1px rgba(106, 17, 203, 0.2) !important;
+        }
+
+        /* 4. Action Buttons (Cam/Mic) - Circular & Clean */
+        div[data-testid="stBottomBlock"] button {
+            border: 1px solid #F3F4F6 !important;
+            background: #FFFFFF !important;
+            color: #6B7280 !important;
+            font-size: 1.2rem !important;
+            padding: 0 !important;
+            width: 42px !important;
+            height: 42px !important;
+            border-radius: 50% !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+        }
+        div[data-testid="stBottomBlock"] button:hover {
+            background-color: #F9FAFB !important;
+            color: #6a11cb !important;
+            border-color: #6a11cb !important;
+        }
+
+        /* 5. Language Selector - Small Pill */
         div[data-testid="stSelectbox"] > div > div {
             border-radius: 20px !important;
-            border: none !important;
-            background-color: #F3F4F6 !important;
-            font-size: 12px !important;
-            min-height: 28px !important;
-            padding: 0px 10px !important;
+            border: 1px solid #E5E7EB !important;
+            background-color: #FFFFFF !important;
+            font-size: 13px !important;
+            min-height: 32px !important;
+            padding: 0px 8px !important;
         }
         
-        /* 🟢 MENU CARDS (Main) */
-        .feature-btn button {
+        /* 6. Sidebar Buttons Styling */
+        section[data-testid="stSidebar"] .stButton button {
             width: 100% !important;
             border-radius: 12px !important;
             border: 1px solid #E5E7EB !important;
@@ -550,15 +565,13 @@ def patient_app():
             font-size: 15px !important;
             padding: 14px 20px !important;
             margin-bottom: 8px !important;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
             text-align: left !important;
             display: flex;
             align-items: center;
         }
-        .feature-btn button:hover {
+        section[data-testid="stSidebar"] .stButton button:hover {
             border-color: #6a11cb !important;
             color: #6a11cb !important;
-            transform: translateY(-1px);
             background-color: #F9FAFB !important;
         }
     </style>
@@ -617,25 +630,13 @@ def patient_app():
             st.session_state.messages.append({"role": "user", "content": st.session_state.user_query})
             st.session_state.user_query = "" 
 
-    # --- 5. STICKY FOOTER (UNIFIED BAR) ---
+    # --- 5. STICKY FOOTER (ACTION ROW) ---
     
     with st.container(border=False):
         
-        # 1. LANGUAGE BUTTON (Floating Right)
-        c_spacer, c_lang = st.columns([3, 1.5])
-        with c_lang:
-             sel_lang = st.selectbox("Language", ["English", "Hindi", "Tamil", "Telugu"], key="lang_select", label_visibility="collapsed")
-             lang_map = {"English":"en-US", "Hindi":"hi-IN", "Tamil":"ta-IN", "Telugu":"te-IN"}
-             actual_lang_code = lang_map[sel_lang]
-
-        # 2. UNIFIED SEARCH BAR (Container with border)
-        st.markdown('<div class="unified-bar">', unsafe_allow_html=True)
-        
-        # Layout: [ Input (80%) ] [ Cam (10%) ] [ Mic (10%) ]
-        c_input, c_cam, c_mic = st.columns([8.6, 0.7, 0.7])
-        
-        with c_input:
-            st.text_input("Msg...", placeholder=f"Ask {APP_NAME}...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
+        # ROW 1: TOOLS + LANG
+        # Layout: [Cam] [Mic] [Spacer] [Lang]
+        c_cam, c_mic, c_space, c_lang = st.columns([0.6, 0.6, 6, 2])
         
         with c_cam:
             if st.button("📷", key="cam_btn"): st.session_state.show_camera = not st.session_state.show_camera; st.rerun()
@@ -647,8 +648,14 @@ def patient_app():
                     st.session_state.user_query = v_txt
                     handle_user_input()
                     st.rerun()
-            
-        st.markdown('</div>', unsafe_allow_html=True)
+        
+        with c_lang:
+             sel_lang = st.selectbox("Language", ["English", "Hindi", "Tamil", "Telugu"], key="lang_select", label_visibility="collapsed")
+             lang_map = {"English":"en-US", "Hindi":"hi-IN", "Tamil":"ta-IN", "Telugu":"te-IN"}
+             actual_lang_code = lang_map[sel_lang]
+
+        # ROW 2: SEARCH BAR
+        st.text_input("Msg...", placeholder=f"Ask {APP_NAME}...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
 
     # --- PROCESS INPUTS (AUTO CLOSE CAMERA) ---
     external_input = None
@@ -677,16 +684,20 @@ def patient_app():
                         
                         # --- IMPROVED SYSTEM PROMPT ---
                         system_instruction = f"""
-                        You are {APP_NAME}, a medical assistant.
+                        You are {APP_NAME}, a professional AI medical assistant.
                         User: {st.session_state.name}.
-                        History: {hist}.
+                        Medical History Context: {hist}.
                         
-                        RULES:
-                        1. Answer directly and concisely.
-                        2. If medical: Structure answer as [Possible Causes] -> [Home Remedies] -> [Warning Signs].
-                        3. If casual (e.g. "hi"): Be friendly but brief.
-                        4. DO NOT generate code or math unless asked.
-                        5. Translate final response to: {sel_lang}.
+                        YOUR TASK:
+                        1. Provide accurate, safe, and helpful medical information.
+                        2. Structure your answer clearly:
+                           - **Possible Causes**: Briefly explain what might be wrong.
+                           - **Home Remedies**: Simple steps the user can take immediately.
+                           - **OTC Medications**: Suggest common over-the-counter options (generic names).
+                           - **Warning Signs**: When to see a doctor immediately.
+                        3. If the query is casual (e.g., "hi", "thanks"), be friendly and brief.
+                        4. DO NOT generate code, math, or unrelated content.
+                        5. Translate the final response to: {sel_lang}.
                         """
                         
                         model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=system_instruction)
@@ -704,7 +715,7 @@ def patient_app():
                         st.session_state.messages.append({"role": "assistant", "content": full_resp})
                     except Exception as e:
                         if "403" in str(e):
-                            st.error("🚨 API Key Error: Your key is blocked. Please update it in the code.")
+                            st.error("🚨 API Key Error: Your key is blocked/invalid. Please update it in the code.")
                         else:
                             st.error(f"Error: {e}")
 
