@@ -29,14 +29,14 @@ except ImportError:
 lottie_orb = None 
 
 # ==========================================
-# ⚙️ APP CONFIGURATION (EDIT HERE)
+# ⚙️ APP CONFIGURATION
 # ==========================================
 APP_NAME = "SymptoSense"
 APP_ICON = "🟣" 
 
 # 👇👇 1. PASTE YOUR EMAIL DETAILS HERE 👇👇
-SENDER_EMAIL = "dyaswanthgslv@gmail.com"   # <--- Enter your Gmail
-APP_PASSWORD = "cmjb igal whua ofml"        # <--- Enter App Password (NOT Gmail password)
+SENDER_EMAIL = "dyaswanthgslv@gmail.com"
+APP_PASSWORD = "cmjb igal whua ofml"
 
 # --- 🎨 CONFIGURATION ---
 st.set_page_config(
@@ -48,10 +48,9 @@ st.set_page_config(
 
 # --- 🛠️ API SETUP ---
 try:
-    # 👇👇 2. PASTE YOUR NEW GOOGLE API KEY HERE 👇👇
     my_api_key = st.secrets["GOOGLE_API_KEY"] 
 except:
-    my_api_key = "AIzaSyC_hiTFjMiRtoXnsHx9C0nVzC3h2hv63hI"
+    my_api_key = "AIzaSyDS0HBbT5Ktegf6TwtF0Vwc1HP2OGTUuVU"
 
 genai.configure(api_key=my_api_key)
 
@@ -68,132 +67,25 @@ def load_lottieurl(url):
 
 lottie_orb = load_lottieurl("https://lottie.host/5a889496-5273-41c0-827d-78363717df3f/M387N9O2Q2.json")
 
-# --- 🎨 FINAL PREMIUM CSS ---
+# --- 🎨 GLOBAL STYLES (SAFE FOR LOGIN) ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap');
-    html, body, [class*="css"] { font-family: 'Outfit', sans-serif; background-color: #FFFFFF; }
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
+    html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; background-color: #FFFFFF; }
     .stApp { background-color: #FFFFFF; }
-
-    /* Hide Headers/Footers */
-    header {visibility: visible; background: transparent;}
+    
+    /* Hide standard header/footer */
+    header {visibility: hidden;}
     footer {visibility: hidden;}
-
-    /* 🟢 MENU CARDS (Clean & Soft) */
-    .feature-btn button {
-        width: 100% !important;
-        border-radius: 16px !important;
-        border: 1px solid #F1F3F4 !important;
-        background-color: #F8F9FA !important;
-        color: #1F1F1F !important;
-        font-weight: 500 !important;
-        font-size: 16px !important;
-        padding: 16px 20px !important;
-        margin-bottom: 12px !important;
-        box-shadow: none !important;
-        text-align: left !important;
-        display: flex;
-        align-items: center;
-        transition: all 0.2s;
-    }
-    .feature-btn button:hover {
-        background-color: #EDF2FA !important;
-        color: #0B57D0 !important;
-        border-color: #E0E3E7 !important;
-        transform: translateX(2px);
-    }
     
     /* 🔴 SOS Button */
     div.stButton > button[kind="primary"] {
-        background-color: #B3261E !important;
+        background: #DC2626 !important;
         border: none !important;
         color: white !important;
-        border-radius: 100px !important;
-        padding: 14px !important;
-        font-weight: 600 !important;
-        box-shadow: 0 4px 10px rgba(179, 38, 30, 0.2) !important;
+        font-weight: 700 !important;
+        box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
     }
-
-    /* 💬 Chat Bubbles */
-    .stChatMessage[data-testid="stChatMessageUser"] { 
-        background-color: #0B57D0; 
-        color: white; 
-        border-radius: 20px 20px 4px 20px;
-    }
-    .stChatMessage[data-testid="stChatMessageAssistant"] { 
-        background-color: #F0F4F9; 
-        border: none;
-        color: #1F1F1F; 
-        border-radius: 20px 20px 20px 4px;
-    }
-
-    /* ---------------------------------------------------- */
-    /* 🚀 UNIFIED BAR CSS (The "Ghost Box" Fix)             */
-    /* ---------------------------------------------------- */
-    
-    /* 1. Style the Streamlit Row Container directly */
-    div[data-testid="stBottomBlock"] [data-testid="stHorizontalBlock"] {
-        background-color: #F0F4F9; /* Light Grey Background */
-        border-radius: 35px;       /* Full Pill Shape */
-        padding: 5px 10px;
-        align-items: center;
-        gap: 0px !important;
-        border: 1px solid #E0E0E0; /* Subtle border */
-    }
-
-    /* 2. Transparent Input Field */
-    div[data-testid="stTextInput"] input {
-        border: none !important;
-        box-shadow: none !important;
-        background-color: transparent !important;
-        padding-left: 15px;
-        font-size: 16px;
-        height: 50px;
-        color: #1F1F1F;
-    }
-    div[data-testid="stTextInput"] input:focus {
-        border: none !important;
-        box-shadow: none !important;
-    }
-    div[data-testid="stTextInput"] { margin-bottom: 0px !important; width: 100% !important; }
-
-    /* 3. Integrated Icons */
-    div[data-testid="stBottomBlock"] button {
-        border: none !important;
-        background: transparent !important;
-        color: #444746 !important;
-        font-size: 1.3rem !important;
-        padding: 0 !important;
-        width: 45px !important;
-        height: 45px !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    div[data-testid="stBottomBlock"] button:hover {
-        background-color: #E1E5EA !important;
-        border-radius: 50% !important;
-        color: #0B57D0 !important;
-    }
-
-    /* 4. Language Pill (Floating) */
-    div[data-testid="stSelectbox"] > div > div {
-        border-radius: 12px !important;
-        border: 1px solid #E0E0E0 !important;
-        background-color: #FFFFFF !important;
-        font-size: 13px !important;
-        min-height: 32px !important;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    }
-
-    /* Footer Spacing */
-    div[data-testid="stBottomBlock"] {
-        padding-bottom: 25px;
-        padding-top: 10px;
-        background-color: #FFFFFF;
-        border: none;
-    }
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -395,7 +287,7 @@ if "name" not in st.session_state: st.session_state.name = ""
 if "age" not in st.session_state: st.session_state.age = ""
 if "otp_sent" not in st.session_state: st.session_state.otp_sent = False
 if "real_otp" not in st.session_state: st.session_state.real_otp = 0
-if "show_camera" not in st.session_state: st.session_state.show_camera = False
+if "show_camera" not in st.session_state: st.session_state.show_camera = False 
 if "messages" not in st.session_state: st.session_state.messages = []
 if "user_query" not in st.session_state: st.session_state.user_query = ""
 if "pending_image" not in st.session_state: st.session_state.pending_image = None
@@ -433,10 +325,10 @@ def sos_modal():
     st.write("### 🏥 Instant AI Guide")
     c1, c2, c3, c4 = st.columns(4)
     condition = None
-    if c1.button("❤️ Heart Attack"): condition = "Heart Attack First Aid"
+    if c1.button("❤️ Heart"): condition = "Heart Attack First Aid"
     if c2.button("🧠 Stroke"): condition = "Stroke First Aid"
-    if c3.button("🩸 Bleeding"): condition = "Severe Bleeding First Aid"
-    if c4.button("🔥 Burns"): condition = "Severe Burns First Aid"
+    if c3.button("🩸 Bleed"): condition = "Severe Bleeding First Aid"
+    if c4.button("🔥 Burn"): condition = "Severe Burns First Aid"
     if condition:
         with st.spinner("Fetching steps..."):
             model = genai.GenerativeModel('gemini-2.5-flash')
@@ -577,7 +469,6 @@ def login_screen():
     col1, col2, col3 = st.columns([1,1.5,1])
     with col2:
         st.markdown("<br><br>", unsafe_allow_html=True)
-        # FIXED: Safety check for lottie
         if LOTTIE_AVAILABLE and lottie_orb: 
             st_lottie(lottie_orb, height=120, key="login_anim")
             
@@ -617,11 +508,127 @@ def login_screen():
 
 # --- PATIENT APP ---
 def patient_app():
-    # --- SIDEBAR (Standard Menu) ---
+    # --- 🔒 APPLY APP CSS ONLY WHEN LOGGED IN (Fixes Login Screen Glitch) ---
+    st.markdown("""
+    <style>
+        /* 1. Target the Horizontal Block containing Input+Icons */
+        div[data-testid="stBottomBlock"] [data-testid="stHorizontalBlock"] {
+            background-color: #F8F9FA; 
+            border-radius: 30px;
+            border: 1px solid #E5E7EB; /* Single clean border */
+            padding: 4px 10px;
+            align-items: center;
+            gap: 0px !important;
+            box-shadow: none; 
+        }
+
+        /* 2. The Input Field - Strip all styling */
+        div[data-testid="stBottomBlock"] div[data-testid="stTextInput"] input {
+            border: none !important;
+            box-shadow: none !important;
+            background-color: transparent !important;
+            padding-left: 5px;
+            font-size: 16px;
+            color: #111;
+            height: 45px;
+        }
+        div[data-testid="stBottomBlock"] div[data-testid="stTextInput"] input:focus {
+            border: none !important;
+            box-shadow: none !important;
+            background-color: transparent !important;
+        }
+        div[data-testid="stBottomBlock"] div[data-testid="stTextInput"] { 
+            margin-bottom: 0px !important; 
+            width: 100% !important; 
+            border: none !important; 
+        }
+
+        /* 3. The Icons (Cam/Mic) - Transparent Buttons */
+        div[data-testid="stBottomBlock"] button {
+            border: none !important;
+            background: transparent !important;
+            color: #6B7280 !important;
+            font-size: 1.2rem !important;
+            padding: 0 !important;
+            width: 40px !important;
+            height: 40px !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 !important;
+            box-shadow: none !important;
+        }
+        div[data-testid="stBottomBlock"] button:hover {
+            background-color: #E5E7EB !important;
+            border-radius: 50% !important;
+            color: #2563EB !important;
+        }
+
+        /* 4. Language Selector (Floating) */
+        div[data-testid="stSelectbox"] > div > div {
+            border-radius: 20px !important;
+            border: none !important;
+            background-color: #F3F4F6 !important;
+            font-size: 12px !important;
+            min-height: 28px !important;
+            padding: 0px 10px !important;
+        }
+
+        /* 5. FIX FOOTER AT BOTTOM */
+        div[data-testid="stBottomBlock"] {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding-bottom: 20px;
+            padding-top: 10px;
+            background-color: #FFFFFF;
+            border-top: 1px solid #F9FAFB;
+            z-index: 999;
+        }
+        
+        /* 🟢 MENU CARDS (Main) */
+        .feature-btn button {
+            width: 100% !important;
+            border-radius: 12px !important;
+            border: 1px solid #E5E7EB !important;
+            background-color: #FFFFFF !important;
+            color: #1F2937 !important;
+            font-weight: 600 !important;
+            font-size: 15px !important;
+            padding: 14px 20px !important;
+            margin-bottom: 8px !important;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+            text-align: left !important;
+            display: flex;
+            align-items: center;
+        }
+        .feature-btn button:hover {
+            border-color: #6a11cb !important;
+            color: #6a11cb !important;
+            transform: translateY(-1px);
+            background-color: #F9FAFB !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # --- SIDEBAR (Persistent Tools) ---
     with st.sidebar:
         st.markdown(f"### {APP_ICON} **{APP_NAME}**")
         side_name = st.session_state.name if st.session_state.name else st.session_state.username
         st.caption(f"User: {side_name}")
+        
+        # --- 🛠️ SMART SIDEBAR TOOLS LOGIC ---
+        # The tools appear HERE only after a chat starts
+        if st.session_state.messages:
+            st.markdown("### 🛠️ Tools")
+            if st.button("💊 Medicine", use_container_width=True): medicine_modal()
+            if st.button("⚖️ BMI", use_container_width=True): bmi_modal()
+            if st.button("🚑 First Aid", use_container_width=True): first_aid_modal()
+            if st.button("📄 Digitizer", use_container_width=True): prescription_modal()
+            if st.button("🥗 Health Plan", use_container_width=True): health_plan_modal()
+            if st.button("🏆 Streak", use_container_width=True): gamification_modal()
+            st.markdown("---")
         
         if st.button("👤 My Profile", use_container_width=True): profile_modal()
         if st.button("📜 Full History", use_container_width=True): full_history_modal()
@@ -651,16 +658,15 @@ def patient_app():
                 if "https://www.google.com/maps/search/SPECIALIST_TYPE+near+me" in m["content"] and m["role"] == "assistant":
                     st.link_button("📍 Find Specialist Near Me", m["content"].split("(")[-1].split(")")[0])
 
-    # 3. VERTICAL BUTTONS (MOBILE STYLE)
+    # 3. VERTICAL BUTTONS (MOBILE STYLE - HOME ONLY)
     if not st.session_state.messages:
         # Centered narrow column for cleaner look
         c_left, c_mid, c_right = st.columns([0.5, 3, 0.5])
         with c_mid:
-            # Wrap buttons in the 'feature-btn' class defined in CSS
             st.markdown('<div class="feature-btn">', unsafe_allow_html=True)
             if st.button("💊 Medicine Reminder"): medicine_modal()
             if st.button("⚖️ BMI Calculator"): bmi_modal()
-            if st.button("🚑 First Aid"): first_aid_modal()
+            if st.button("🚑 First Aid Guide"): first_aid_modal()
             if st.button("📄 Digitizer"): prescription_modal()
             if st.button("🥗 Health Plan"): health_plan_modal()
             if st.button("🏆 Streak"): gamification_modal()
@@ -686,12 +692,10 @@ def patient_app():
              lang_map = {"English":"en-US", "Hindi":"hi-IN", "Tamil":"ta-IN", "Telugu":"te-IN"}
              actual_lang_code = lang_map[sel_lang]
 
-        # 2. UNIFIED SEARCH BAR (Input + Cam + Mic INSIDE)
-        # Using a div wrapper to style the whole row as one pill
+        # 2. UNIFIED SEARCH BAR (Container with border)
         st.markdown('<div class="unified-bar">', unsafe_allow_html=True)
         
-        # Use columns inside the styling wrapper
-        # Input gets most width, Cam & Mic get small slots at the end
+        # Layout: [ Input (80%) ] [ Cam (10%) ] [ Mic (10%) ]
         c_input, c_cam, c_mic = st.columns([8, 1, 1])
         
         with c_input:
@@ -710,14 +714,16 @@ def patient_app():
             
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- PROCESS INPUTS ---
+    # --- PROCESS INPUTS (AUTO CLOSE CAMERA) ---
     external_input = None
     if st.session_state.show_camera:
         st.info("Camera Mode")
         cam = st.camera_input("Take Photo")
         if cam: 
             st.session_state.pending_image = cam
+            st.session_state.show_camera = False # <--- AUTO CLOSE FIX
             external_input = "Analyze this medical image"
+            st.rerun() 
 
     if external_input:
         st.session_state.messages.append({"role": "user", "content": external_input})
