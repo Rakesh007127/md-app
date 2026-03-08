@@ -69,103 +69,81 @@ def load_lottieurl(url):
 
 lottie_orb = load_lottieurl("https://lottie.host/5a889496-5273-41c0-827d-78363717df3f/M387N9O2Q2.json")
 
-# --- 🎨 GEMINI-STYLE CSS (FIXED FOR MOBILE ROW) ---
+# --- 🎨 SKETCH-STYLE CSS ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
     html, body, [class*="css"] { font-family: 'Inter', sans-serif; background-color: #FFFFFF; }
     .stApp { background-color: #FFFFFF; }
 
-    /* Hide standard header/footer */
-    #MainMenu {visibility: hidden;}
+    /* Show the top bar so the Menu (Double Arrow) is visible */
+    header {visibility: visible !important; background-color: transparent !important;}
+    #MainMenu {visibility: visible;}
     footer {visibility: hidden;}
-    header {visibility: hidden;}
 
-    /* 🟢 GEMINI PILL BUTTONS (Main Screen) */
+    /* 🟢 VERTICAL SKETCH BUTTONS */
     div.stButton > button {
-        text-align: left !important;
-        display: flex;
-        align-items: center;
         width: 100% !important;
-        padding: 12px 20px !important;
-        border-radius: 16px !important;
-        background-color: #F0F4F9 !important;
-        border: none !important;
-        color: #1F1F1F !important;
-        font-weight: 500 !important;
-        font-size: 16px !important;
-        box-shadow: none !important;
-        margin-bottom: 8px !important;
+        border-radius: 25px !important;
+        border: 2px solid #000000 !important; /* Sketch style border */
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+        font-weight: 600 !important;
+        font-size: 18px !important;
+        padding: 10px 20px !important;
+        margin-bottom: 10px !important;
+        box-shadow: 2px 2px 0px rgba(0,0,0,0.1) !important;
+        transition: transform 0.1s;
     }
-    div.stButton > button:hover {
-        background-color: #E1E5EA !important;
+    div.stButton > button:active {
+        transform: scale(0.98);
+        box-shadow: none !important;
     }
     
     /* 🔴 SOS Button Override */
     div.stButton > button[kind="primary"] {
         background-color: #EF4444 !important;
+        border: none !important;
         color: white !important;
-        text-align: center !important;
-        width: 100% !important;
-        animation: pulse 2s infinite;
+        box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4) !important;
     }
 
     /* 💬 Chat Bubbles */
     .stChatMessage[data-testid="stChatMessageUser"] { 
-        background-color: #F0F4F9; 
+        background-color: #E3F2FD; 
         color: #000; 
-        border-radius: 20px 20px 5px 20px;
+        border-radius: 20px 20px 0px 20px;
+        border: 1px solid #BBDEFB;
     }
     .stChatMessage[data-testid="stChatMessageAssistant"] { 
         background-color: #FFFFFF; 
+        border: 1px solid #E0E0E0;
         color: #000; 
+        border-radius: 20px 20px 20px 0px;
     }
 
-    /* 🚀 STICKY FOOTER HACKS */
+    /* 📱 FOOTER STYLING */
     div[data-testid="stBottomBlock"] {
         background-color: #FFFFFF;
         padding-bottom: 15px;
         padding-top: 10px;
-        border-top: 1px solid #F0F4F9;
+        border-top: 1px solid #F0F0F0;
     }
     
-    /* FORCE ROW LAYOUT ON MOBILE */
-    [data-testid="stBottomBlock"] [data-testid="stHorizontalBlock"] {
-        flex-wrap: nowrap !important; /* This prevents stacking */
-        align-items: center !important;
-        gap: 5px !important;
-    }
-
-    /* ICON BUTTONS (Camera, Mic, Plus) */
-    /* Target buttons inside the footer columns */
-    [data-testid="stBottomBlock"] button {
-        background-color: transparent !important;
-        border: none !important;
-        padding: 0px !important;
-        font-size: 20px !important;
-        color: #444746 !important;
-        width: 40px !important;
-        height: 40px !important;
-        border-radius: 50% !important;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-    [data-testid="stBottomBlock"] button:hover {
-        background-color: #F0F4F9 !important;
-    }
-
-    /* INPUT FIELD */
+    /* INPUT FIELD - SKETCH STYLE */
     div[data-testid="stTextInput"] input {
-        border-radius: 24px !important;
-        background-color: #F0F4F9 !important;
-        border: none !important;
-        padding-left: 20px;
-        height: 48px;
+        border-radius: 15px !important;
+        border: 2px solid #000000 !important;
+        padding-left: 15px;
+        color: #000;
     }
     
-    /* HIDE LABELS */
-    label { display: none !important; }
+    /* Language Button Specifics */
+    div[data-testid="stSelectbox"] > div > div {
+        border-radius: 20px !important;
+        border: 2px solid #000 !important;
+        background-color: #FFF !important;
+    }
 
 </style>
 """, unsafe_allow_html=True)
@@ -590,43 +568,32 @@ def login_screen():
 
 # --- PATIENT APP ---
 def patient_app():
+    # --- SIDEBAR (The "Menu" Logic from Sketch) ---
     with st.sidebar:
         st.markdown(f"### {APP_ICON} **{APP_NAME}**")
         side_name = st.session_state.name if st.session_state.name else st.session_state.username
         st.caption(f"User: {side_name}")
-        if st.button("🚨 SOS EMERGENCY", type="primary", use_container_width=True): sos_modal()
-        st.markdown("---")
-        if st.button("➕ New Chat", use_container_width=True): st.session_state.messages = []; st.rerun()
-        if st.button("📜 Full History", use_container_width=True): full_history_modal()
         
-        # --- FIXED: REMOVED LARGE SPACER ---
-        st.markdown("<br>", unsafe_allow_html=True)
-        
-        st.markdown("---")
+        # Profile & Important Features in Menu
         if st.button("👤 My Profile", use_container_width=True): profile_modal()
+        if st.button("📜 Full History", use_container_width=True): full_history_modal()
+        if st.button("🚨 SOS EMERGENCY", type="primary", use_container_width=True): sos_modal()
+        
+        st.markdown("---")
         if st.button("Log Out", use_container_width=True): 
             st.session_state.messages = []; st.session_state.logged_in = False; st.rerun()
 
     # --- MAIN CONTENT AREA ---
     
-    # 1. HEADER (Gemini Style: Left Text + Right Profile + Lang)
+    # 1. HEADER (Hello Name - Centered/Left)
     if not st.session_state.messages:
-        # Create a container for the header
-        c_text, c_profile = st.columns([5, 1])
-        with c_text:
-            first_name = st.session_state.name.split()[0]
-            st.markdown(f"""
-            <div style="padding-top: 10px;">
-                <h2 style='color: #444746; font-size: 24px; margin-bottom: 0;'>Hello, {first_name}</h2>
-                <h3 style='color: #666; font-weight: 400; font-size: 16px; margin-top: 0;'>How can I assist you today?</h3>
-            </div>
-            """, unsafe_allow_html=True)
-        with c_profile:
-            # Language + Profile Stack
-            lang = st.selectbox("🌐", ["En", "Hi", "Ta", "Te"], key="lang_header", label_visibility="collapsed")
-            # Simulate Profile Circle
-            initial = first_name[0].upper() if first_name else "U"
-            st.markdown(f'<div class="profile-icon">{initial}</div>', unsafe_allow_html=True)
+        # Create a container for the header to match sketch
+        st.markdown(f"""
+        <div style="padding-top: 10px; margin-bottom: 20px;">
+            <h1 style='color: #000; font-size: 32px; font-weight: 600; margin-bottom: 0;'>Hello, {st.session_state.name.split()[0]}</h1>
+            <h3 style='color: #333; font-weight: 400; font-size: 20px; margin-top: 5px;'>How can I assist today?</h3>
+        </div>
+        """, unsafe_allow_html=True)
 
     # 2. CHAT HISTORY
     chat_container = st.container()
@@ -637,21 +604,21 @@ def patient_app():
                 if "https://www.google.com/maps/search/SPECIALIST_TYPE+near+me" in m["content"] and m["role"] == "assistant":
                     st.link_button("📍 Find Specialist Near Me", m["content"].split("(")[-1].split(")")[0])
 
-    # 3. FEATURE PILLS (GEMINI STYLE)
+    # 3. VERTICAL BUTTONS (SKETCH STYLE)
     # Only show if no chat messages
     if not st.session_state.messages:
-        st.markdown("<br>", unsafe_allow_html=True)
-        
-        # We list them vertically like the screenshot
-        if st.button("💊 Medicine Reminder"): medicine_modal()
-        if st.button("⚖️ BMI Calculator"): bmi_modal()
-        if st.button("🚑 First Aid Guide"): first_aid_modal()
-        if st.button("📄 Prescription Digitizer"): prescription_modal()
-        if st.button("🥗 AI Health Plan"): health_plan_modal()
-        if st.button("🏆 Health Streak"): gamification_modal()
+        # Create a narrow centered column for the buttons to look like the sketch
+        c_left, c_mid, c_right = st.columns([0.5, 3, 0.5])
+        with c_mid:
+            if st.button("💊 Medicine"): medicine_modal()
+            if st.button("⚖️ BMI Calculator"): bmi_modal()
+            if st.button("🚑 First Aid"): first_aid_modal()
+            if st.button("📄 Digitizer"): prescription_modal()
+            if st.button("🥗 Health Plan"): health_plan_modal()
+            if st.button("🏆 Streak"): gamification_modal()
 
     # --- SPACER ---
-    st.markdown("<div style='height: 120px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 150px;'></div>", unsafe_allow_html=True)
 
     # --- LOGIC FOR INPUT ---
     def handle_user_input():
@@ -659,16 +626,26 @@ def patient_app():
             st.session_state.messages.append({"role": "user", "content": st.session_state.user_query})
             st.session_state.user_query = "" 
 
-    # --- 5. STICKY FOOTER (ONE ROW FORCED) ---
+    # --- 5. STICKY FOOTER & LANGUAGE ---
+    
+    # Language floating right above the footer
+    if not st.session_state.messages: # Hide language if chatting to keep clean? Or keep it? Sketch shows it.
+        # Use a container fixed near bottom but above footer
+        # Streamlit doesn't support easy fixed elements without bottom container.
+        # We will put it INSIDE the sticky footer container but on a row above the input.
+        pass 
+
     with st.container(border=True):
-        # Layout: [ + ] [ Input (Wide) ] [ Cam ] [ Mic ]
-        # WE REMOVED LANGUAGE FROM HERE TO SAVE SPACE
-        c_plus, c_input, c_cam, c_mic = st.columns([0.6, 5.5, 0.7, 0.7])
-        
-        with c_plus:
-            with st.popover("➕", use_container_width=True):
-                st.markdown("**Features**")
-                if st.button("Clean Chat"): st.session_state.messages = []; st.rerun()
+        # Row 1: Language (Right Aligned like sketch)
+        c_spacer, c_lang = st.columns([3, 1.5])
+        with c_lang:
+             sel_lang = st.selectbox("Language", ["English", "Hindi", "Tamil", "Telugu"], key="lang_select", label_visibility="collapsed")
+             lang_map = {"English":"en-US", "Hindi":"hi-IN", "Tamil":"ta-IN", "Telugu":"te-IN"}
+             actual_lang_code = lang_map[sel_lang]
+
+        # Row 2: Input + Cam + Mic
+        # Layout: [ Input (Wide) ] [ Cam ] [ Mic ]
+        c_input, c_cam, c_mic = st.columns([5, 0.8, 0.8])
         
         with c_input:
             st.text_input("Msg...", placeholder=f"Ask {APP_NAME}...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
@@ -706,14 +683,10 @@ def patient_app():
                     try:
                         hist = get_medical_history_context(st.session_state.username)
                         model = genai.GenerativeModel('gemini-2.5-flash')
-                        
-                        # Get lang from header if available, else default
-                        selected_language = st.session_state.get("lang_header", "En")
-                        
                         prompt = f"""
                         Act as {APP_NAME}, a medical expert. Patient: {st.session_state.name}.
                         History: {hist}. Query: {user_msg}.
-                        Output Language Code: {selected_language} (Translate response).
+                        Output Language: {sel_lang} (Translate response).
                         If medical: Give Cause, Precautions, OTC Meds, Doctor Type.
                         If casual: Just chat nicely.
                         """
