@@ -29,7 +29,7 @@ except ImportError:
 # 🏷️ APP CONFIGURATION
 # ==========================================
 APP_NAME = "SymptoSense"
-APP_ICON = "🟣"  # <-- USING EMOJI (No file needed!)
+APP_ICON = "🟣" 
 
 # ==========================================
 # 👇👇 REPLACE THESE WITH YOUR REAL DETAILS 👇👇
@@ -42,7 +42,7 @@ st.set_page_config(
     page_title=APP_NAME,
     page_icon=APP_ICON,
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="auto"  # Changed to 'auto' for better mobile experience
 )
 
 # --- 🛠️ SETUP ---
@@ -66,7 +66,7 @@ def load_lottieurl(url):
 
 lottie_orb = load_lottieurl("https://lottie.host/5a889496-5273-41c0-827d-78363717df3f/M387N9O2Q2.json")
 
-# --- 🎨 CSS ---
+# --- 🎨 MOBILE-OPTIMIZED CSS ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
@@ -79,23 +79,7 @@ st.markdown("""
         border-right: 1px solid #E5E7EB;
     }
     
-    /* Sidebar Buttons */
-    section[data-testid="stSidebar"] div.stButton > button {
-        text-align: left;
-        border: 1px solid #E5E7EB;
-        background: #FFFFFF;
-        color: #4B5563;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        padding: 5px 10px;
-        margin-bottom: 5px;
-    }
-    section[data-testid="stSidebar"] div.stButton > button:hover {
-        background-color: #F3F4F6;
-        border-color: #6a11cb;
-        color: #6a11cb;
-    }
-
-    /* SOS Button (Red) */
+    /* SOS Button (Red Pulse) */
     div.stButton > button[kind="primary"] {
         background-color: #EF4444 !important;
         color: white !important;
@@ -114,7 +98,7 @@ st.markdown("""
     .stChatMessage[data-testid="stChatMessageUser"] { background-color: #F4F4F4; color: #000; border-radius: 20px 20px 5px 20px; }
     .stChatMessage[data-testid="stChatMessageAssistant"] { background-color: #FFFFFF; border: 1px solid #E5E5E5; color: #000; border-radius: 20px 20px 20px 5px; }
 
-    /* Feature Buttons (Bottom Grid) */
+    /* Default Desktop Feature Buttons */
     div[data-testid="column"] button { 
         height: 75px !important; 
         font-size: 16px !important; 
@@ -131,7 +115,34 @@ st.markdown("""
         color: #6a11cb !important;
         background-color: #FAF5FF !important;
         transform: translateY(-3px); 
-        box-shadow: 0 10px 15px rgba(106, 17, 203, 0.1) !important;
+    }
+
+    /* --- 📱 MOBILE SPECIFIC OVERRIDES --- */
+    @media only screen and (max-width: 768px) {
+        /* Reduce spacer height on mobile */
+        .chat-spacer {
+            height: 100px !important;
+        }
+        
+        /* Make feature buttons compact on mobile */
+        div[data-testid="column"] button {
+            height: 55px !important;
+            font-size: 14px !important;
+            padding: 2px !important;
+        }
+        
+        /* Reduce header sizes */
+        h1 { font-size: 1.8rem !important; }
+        h2 { font-size: 1.5rem !important; }
+        h3 { font-size: 1.2rem !important; }
+        
+        /* Fix Input Text Zoom on iOS */
+        input[type="text"] { font-size: 16px !important; }
+    }
+    
+    /* Default Spacer (Desktop) */
+    .chat-spacer {
+        height: 250px;
     }
     
     footer {visibility: hidden;}
@@ -557,7 +568,7 @@ def login_screen():
 # --- PATIENT APP ---
 def patient_app():
     with st.sidebar:
-        # SIDEBAR HEADER: Icon + Name
+        # SIDEBAR HEADER
         st.markdown(f"### {APP_ICON} **{APP_NAME}**")
             
         side_name = st.session_state.name if st.session_state.name else st.session_state.username
@@ -589,28 +600,29 @@ def patient_app():
                 if "https://www.google.com/maps/search/SPECIALIST_TYPE+near+me" in m["content"] and m["role"] == "assistant":
                     st.link_button("📍 Find Specialist Near Me", m["content"].split("(")[-1].split(")")[0])
 
-    # --- SPACER (Push content down if empty) ---
+    # --- RESPONSIVE SPACER (Use class defined in CSS) ---
     if not st.session_state.messages:
-        st.markdown("<div style='height: 250px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div class='chat-spacer'></div>", unsafe_allow_html=True)
     else:
         st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- CALLBACK FOR TEXT INPUT (CRITICAL FIX) ---
+    # --- CALLBACK FOR TEXT INPUT ---
     def handle_user_input():
         if st.session_state.user_query.strip():
             st.session_state.messages.append({"role": "user", "content": st.session_state.user_query})
             st.session_state.user_query = "" # Clear safely before rerun
 
-    # --- INPUT AREA (FIXED OPTIONS) ---
+    # --- INPUT AREA (MOBILE FRIENDLY RATIOS) ---
     with st.container(border=True):
-        c1, c2, c3, c4 = st.columns([0.5, 6, 1, 0.5])
+        # Adjusted column weights: Camera(1), Input(6), Lang(2), Mic(1)
+        c1, c2, c3, c4 = st.columns([1, 6, 2, 1])
         with c1:
-            if st.button("📷", help="Visual Mode", key="cam_btn"): 
+            if st.button("📷", help="Cam", key="cam_btn"): 
                 st.session_state.show_camera = not st.session_state.show_camera; st.rerun()
         with c2:
-            st.text_input(f"Message {APP_NAME}...", placeholder=f"Ask {APP_NAME} anything...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
+            st.text_input(f"Message...", placeholder=f"Ask {APP_NAME}...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
         with c3:
-            lang = st.selectbox("Lang", ["English", "Hindi", "Tamil", "Telugu"], label_visibility="collapsed")
+            lang = st.selectbox("Lg", ["English", "Hindi", "Tamil", "Telugu"], label_visibility="collapsed")
             lang_code = {"English":"en-US", "Hindi":"hi-IN", "Tamil":"ta-IN", "Telugu":"te-IN"}[lang]
         with c4:
             if MIC_AVAILABLE:
@@ -632,7 +644,7 @@ def patient_app():
     with r2c2:
         if st.button("🥗 AI Plan", use_container_width=True): health_plan_modal()
     with r2c3:
-        if st.button("🏆 Health Streak", use_container_width=True): gamification_modal()
+        if st.button("🏆 Streak", use_container_width=True): gamification_modal()
 
     # --- PROCESS INPUT (Text/Voice/Cam) ---
     external_input = None
@@ -675,25 +687,25 @@ def patient_app():
                         Patient: {st.session_state.name}, Age: {st.session_state.age}.
                         
                         **INSTRUCTIONS:**
-                        1. The user's input might be in **English, Hindi, Tamil, or Telugu**. Translate it internally to understand the symptom.
-                        2. **CRITICAL:** If the user just says "Hi", "Hello", or a greeting, IGNORE the history. Just greet them politely and ask how you can help.
-                        3. If it is a medical symptom, use the History: {hist} for context.
-                        4. Provide the final response in **{lang}** language.
+                        1. Translate input if needed (English, Hindi, Tamil, Telugu).
+                        2. If user greets ("Hi", "Hello"), IGNORE history. Just greet back.
+                        3. If medical, use History: {hist}.
+                        4. Response Language: **{lang}**.
                         
-                        Current Symptom/Query: {user_msg}
+                        Query: {user_msg}
                         
-                        **FORMAT (Only if it's a symptom, otherwise just chat):**
-                        1. **Possible Cause:** ...
-                        2. **Precautions:** ...
-                        3. **Medicine Prescription:** (OTC only, add disclaimer)
-                        4. **Nearby Doctors:** [Click to find Specialist](https://www.google.com/maps/search/SPECIALIST_TYPE+near+me)
+                        **FORMAT (Medical Only):**
+                        1. **Possible Cause:**
+                        2. **Precautions:**
+                        3. **Medicine:** (OTC only + Disclaimer)
+                        4. **Nearby:** [Find Doctor](https://www.google.com/maps/search/SPECIALIST_TYPE+near+me)
                         """
                         
                         # Handle Image Analysis
                         if "Analyze this medical image" in user_msg and st.session_state.pending_image:
                             img = Image.open(st.session_state.pending_image)
                             response = model.generate_content([prompt, img])
-                            st.session_state.pending_image = None # Clear after use
+                            st.session_state.pending_image = None 
                         else:
                             response = model.generate_content(prompt)
                         
