@@ -25,6 +25,9 @@ try:
 except ImportError:
     MIC_AVAILABLE = False
 
+# --- 🎬 INITIALIZE GLOBALS (Prevents NameError) ---
+lottie_orb = None 
+
 # ==========================================
 # 🏷️ APP CONFIGURATION
 # ==========================================
@@ -42,7 +45,7 @@ st.set_page_config(
     page_title=APP_NAME,
     page_icon=APP_ICON,
     layout="wide",
-    initial_sidebar_state="auto"  # Changed to 'auto' for better mobile experience
+    initial_sidebar_state="collapsed"
 )
 
 # --- 🛠️ SETUP ---
@@ -55,7 +58,7 @@ genai.configure(api_key=my_api_key)
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'medical_history.db')
 
-# --- 🎬 ANIMATIONS ---
+# --- 🎬 ANIMATIONS LOADER ---
 def load_lottieurl(url):
     if not LOTTIE_AVAILABLE: return None
     try:
@@ -64,88 +67,65 @@ def load_lottieurl(url):
         return r.json()
     except: return None
 
+# Load Animation
 lottie_orb = load_lottieurl("https://lottie.host/5a889496-5273-41c0-827d-78363717df3f/M387N9O2Q2.json")
 
-# --- 🎨 MOBILE-OPTIMIZED CSS ---
+# --- 🎨 ADVANCED CSS ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
     html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
-    .stApp { background-color: #FFFFFF; color: #1A1A1A; }
-    
-    /* Sidebar Styling */
-    section[data-testid="stSidebar"] {
-        background-color: #F9FAFB;
-        border-right: 1px solid #E5E7EB;
-    }
-    
-    /* SOS Button (Red Pulse) */
-    div.stButton > button[kind="primary"] {
-        background-color: #EF4444 !important;
-        color: white !important;
-        border: none !important;
-        font-weight: bold !important;
-        box-shadow: 0 4px 6px rgba(239, 68, 68, 0.4) !important;
-        animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-        70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-    }
+    .stApp { background-color: #FFFFFF; }
+
+    /* Hide default elements */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
 
     /* Chat Bubbles */
-    .stChatMessage[data-testid="stChatMessageUser"] { background-color: #F4F4F4; color: #000; border-radius: 20px 20px 5px 20px; }
-    .stChatMessage[data-testid="stChatMessageAssistant"] { background-color: #FFFFFF; border: 1px solid #E5E5E5; color: #000; border-radius: 20px 20px 20px 5px; }
-
-    /* Default Desktop Feature Buttons */
-    div[data-testid="column"] button { 
-        height: 75px !important; 
-        font-size: 16px !important; 
-        font-weight: 600 !important; 
-        border: 1px solid #E0E0E0 !important; 
-        background-color: #FFFFFF !important; 
-        color: #333 !important; 
-        border-radius: 15px !important; 
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
-        transition: all 0.2s ease !important;
+    .stChatMessage[data-testid="stChatMessageUser"] { 
+        background-color: #E0F2FE; 
+        color: #000; 
+        border-radius: 15px 15px 0px 15px;
+        padding: 10px;
     }
-    div[data-testid="column"] button:hover { 
-        border-color: #6a11cb !important; 
+    .stChatMessage[data-testid="stChatMessageAssistant"] { 
+        background-color: #F3F4F6; 
+        border: 1px solid #E5E7EB; 
+        color: #000; 
+        border-radius: 15px 15px 15px 0px;
+        padding: 10px;
+    }
+
+    /* 🔘 MAIN BUTTONS (Medicine/BMI) */
+    .big-button button {
+        height: 70px !important;
+        width: 100% !important;
+        font-size: 18px !important;
+        font-weight: 600 !important;
+        border-radius: 15px !important;
+        background-color: white !important;
+        border: 2px solid #6a11cb !important;
         color: #6a11cb !important;
-        background-color: #FAF5FF !important;
-        transform: translateY(-3px); 
+        box-shadow: 0 4px 6px rgba(106, 17, 203, 0.1) !important;
+    }
+    
+    /* 📱 MOBILE FOOTER */
+    div[data-testid="stBottomBlock"] {
+        padding-bottom: 0;
+        background-color: white;
+    }
+    
+    /* Sidebar Spacer */
+    .sidebar-spacer {
+        height: 45vh; 
+    }
+    
+    /* Input Field Styling */
+    div[data-testid="stTextInput"] input {
+        border-radius: 20px;
     }
 
-    /* --- 📱 MOBILE SPECIFIC OVERRIDES --- */
-    @media only screen and (max-width: 768px) {
-        /* Reduce spacer height on mobile */
-        .chat-spacer {
-            height: 100px !important;
-        }
-        
-        /* Make feature buttons compact on mobile */
-        div[data-testid="column"] button {
-            height: 55px !important;
-            font-size: 14px !important;
-            padding: 2px !important;
-        }
-        
-        /* Reduce header sizes */
-        h1 { font-size: 1.8rem !important; }
-        h2 { font-size: 1.5rem !important; }
-        h3 { font-size: 1.2rem !important; }
-        
-        /* Fix Input Text Zoom on iOS */
-        input[type="text"] { font-size: 16px !important; }
-    }
-    
-    /* Default Spacer (Desktop) */
-    .chat-spacer {
-        height: 250px;
-    }
-    
-    footer {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -186,8 +166,7 @@ def save_to_db(name, age, symptom, advice):
             c.execute('INSERT INTO patients (name, age, symptom, advice) VALUES (?, ?, ?, ?)', (name, age, symptom, advice))
             conn.commit()
         return True
-    except Exception as e:
-        return False
+    except: return False
 
 def make_hashes(password): return hashlib.sha256(str.encode(password)).hexdigest()
 
@@ -530,7 +509,10 @@ def login_screen():
     col1, col2, col3 = st.columns([1,1.5,1])
     with col2:
         st.markdown("<br><br>", unsafe_allow_html=True)
-        if LOTTIE_AVAILABLE and lottie_orb: st_lottie(lottie_orb, height=120, key="login_anim")
+        # FIXED: Safety check for lottie
+        if LOTTIE_AVAILABLE and lottie_orb: 
+            st_lottie(lottie_orb, height=120, key="login_anim")
+            
         st.markdown(f"<h2 style='text-align: center;'>Welcome to {APP_NAME}</h2>", unsafe_allow_html=True)
         t1, t2, t3 = st.tabs(["Login", "Sign Up", "Reset"])
         with t1:
@@ -568,30 +550,34 @@ def login_screen():
 # --- PATIENT APP ---
 def patient_app():
     with st.sidebar:
-        # SIDEBAR HEADER
         st.markdown(f"### {APP_ICON} **{APP_NAME}**")
-            
         side_name = st.session_state.name if st.session_state.name else st.session_state.username
         st.caption(f"User: {side_name}")
         if st.button("🚨 SOS EMERGENCY", type="primary", use_container_width=True): sos_modal()
         st.markdown("---")
         if st.button("➕ New Chat", use_container_width=True): st.session_state.messages = []; st.rerun()
         if st.button("📜 Full History", use_container_width=True): full_history_modal()
-        st.markdown("<br><br><br>", unsafe_allow_html=True)
+        
+        # PUSH TO BOTTOM
+        st.markdown("<div class='sidebar-spacer'></div>", unsafe_allow_html=True)
+        
         st.markdown("---")
         if st.button("👤 My Profile", use_container_width=True): profile_modal()
         if st.button("Log Out", use_container_width=True): 
             st.session_state.messages = []; st.session_state.logged_in = False; st.rerun()
 
-    # --- TOP AREA ---
-    col1, col2, col3 = st.columns([1,2,1])
-    with col2:
-        if not st.session_state.messages:
-            if LOTTIE_AVAILABLE and lottie_orb: st_lottie(lottie_orb, height=150, key="hero")
-            st.markdown(f"<h1 style='text-align: center; color: #6a11cb;'>Hello, {st.session_state.name.split()[0]}</h1>", unsafe_allow_html=True)
-            st.markdown(f"<h3 style='text-align: center; color: #666; font-weight: 400;'>How can I assist you today?</h3>", unsafe_allow_html=True)
+    # --- MAIN CONTENT AREA ---
+    
+    # 1. CENTERED HEADER (Greeting)
+    if not st.session_state.messages:
+        st.markdown(f"""
+        <div style="text-align: center; margin-top: 20px;">
+            <h1 style='color: #6a11cb; font-size: 2.5rem; margin-bottom: 0;'>Hello, {st.session_state.name.split()[0]}</h1>
+            <h3 style='color: #666; font-weight: 400; font-size: 1.2rem; margin-top: 5px;'>How can I assist you today?</h3>
+        </div>
+        """, unsafe_allow_html=True)
 
-    # Chat Messages (Above Input)
+    # 2. CHAT HISTORY
     chat_container = st.container()
     with chat_container:
         for m in st.session_state.messages:
@@ -600,72 +586,71 @@ def patient_app():
                 if "https://www.google.com/maps/search/SPECIALIST_TYPE+near+me" in m["content"] and m["role"] == "assistant":
                     st.link_button("📍 Find Specialist Near Me", m["content"].split("(")[-1].split(")")[0])
 
-    # --- RESPONSIVE SPACER (Use class defined in CSS) ---
+    # 3. VISIBLE FEATURE BUTTONS (PUSHED DOWN)
+    # Only show if no chat messages
     if not st.session_state.messages:
-        st.markdown("<div class='chat-spacer'></div>", unsafe_allow_html=True)
+        # Extra spacing to push buttons lower
+        st.markdown("<div style='height: 25vh;'></div>", unsafe_allow_html=True)
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown('<div class="big-button">', unsafe_allow_html=True)
+            if st.button("💊 Medicine", use_container_width=True): medicine_modal()
+            st.markdown('</div>', unsafe_allow_html=True)
+        with c2:
+            st.markdown('<div class="big-button">', unsafe_allow_html=True)
+            if st.button("⚖️ BMI", use_container_width=True): bmi_modal()
+            st.markdown('</div>', unsafe_allow_html=True)
     else:
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 100px;'></div>", unsafe_allow_html=True)
 
-    # --- CALLBACK FOR TEXT INPUT ---
+    # --- LOGIC FOR INPUT ---
     def handle_user_input():
         if st.session_state.user_query.strip():
             st.session_state.messages.append({"role": "user", "content": st.session_state.user_query})
-            st.session_state.user_query = "" # Clear safely before rerun
+            st.session_state.user_query = "" 
 
-    # --- INPUT AREA (MOBILE FRIENDLY RATIOS) ---
+    # --- 5. STICKY FOOTER ---
     with st.container(border=True):
-        # Adjusted column weights: Camera(1), Input(6), Lang(2), Mic(1)
-        c1, c2, c3, c4 = st.columns([1, 6, 2, 1])
-        with c1:
-            if st.button("📷", help="Cam", key="cam_btn"): 
-                st.session_state.show_camera = not st.session_state.show_camera; st.rerun()
-        with c2:
-            st.text_input(f"Message...", placeholder=f"Ask {APP_NAME}...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
-        with c3:
-            lang = st.selectbox("Lg", ["English", "Hindi", "Tamil", "Telugu"], label_visibility="collapsed")
-            lang_code = {"English":"en-US", "Hindi":"hi-IN", "Tamil":"ta-IN", "Telugu":"te-IN"}[lang]
-        with c4:
+        # Layout: [ + ] [ Input ] [ Cam ] [ Mic ] [ Lang ]
+        # Adjusted columns: Mic is now much closer to Cam (smaller gap), Lang is bigger
+        c_plus, c_input, c_cam, c_mic, c_lang = st.columns([0.6, 4.4, 0.7, 0.7, 2.0])
+        
+        with c_plus:
+            with st.popover("➕", use_container_width=True):
+                st.markdown("**Features**")
+                if st.button("🚑 First Aid", use_container_width=True): first_aid_modal()
+                if st.button("📄 Digitizer", use_container_width=True): prescription_modal()
+                if st.button("🥗 AI Plan", use_container_width=True): health_plan_modal()
+                if st.button("🏆 Streak", use_container_width=True): gamification_modal()
+        
+        with c_input:
+            st.text_input("Msg...", placeholder=f"Ask {APP_NAME}...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
+        
+        with c_cam:
+            if st.button("📷", key="cam_btn"): st.session_state.show_camera = not st.session_state.show_camera; st.rerun()
+        
+        with c_mic:
             if MIC_AVAILABLE:
-                v_txt = speech_to_text(language=lang_code, start_prompt="🎙️", stop_prompt="🛑", just_once=True, key='STT')
+                v_txt = speech_to_text(language='en', start_prompt="🎙️", stop_prompt="🛑", just_once=True, key='STT')
             else:
                 v_txt = None
+                
+        with c_lang:
+            # Expanded Language Selector with Full Names
+            sel_lang = st.selectbox("Lg", ["English", "Hindi", "Tamil", "Telugu"], key="lang_select", label_visibility="collapsed")
+            lang_map = {"English":"en-US", "Hindi":"hi-IN", "Tamil":"ta-IN", "Telugu":"te-IN"}
+            actual_lang_code = lang_map[sel_lang]
 
-    # --- FEATURE BUTTONS ---
-    r1c1, r1c2, r1c3 = st.columns(3)
-    with r1c1:
-        if st.button("💊 Medicine", use_container_width=True): medicine_modal()
-    with r1c2:
-        if st.button("⚖️ BMI Calc", use_container_width=True): bmi_modal()
-    with r1c3:
-        if st.button("🚑 First Aid", use_container_width=True): first_aid_modal()
-    r2c1, r2c2, r2c3 = st.columns(3)
-    with r2c1:
-        if st.button("📄 Digitizer", use_container_width=True): prescription_modal()
-    with r2c2:
-        if st.button("🥗 AI Plan", use_container_width=True): health_plan_modal()
-    with r2c3:
-        if st.button("🏆 Streak", use_container_width=True): gamification_modal()
-
-    # --- PROCESS INPUT (Text/Voice/Cam) ---
+    # --- PROCESS INPUTS ---
     external_input = None
-    if v_txt: 
-        external_input = v_txt
+    if v_txt: external_input = v_txt
     elif st.session_state.show_camera:
-        st.info("Visual Mode Active")
-        cc1, cc2 = st.columns(2)
-        with cc1: cam = st.camera_input("Cam")
-        with cc2: up = st.file_uploader("Upload")
-        
-        # Capture image for analysis
-        if cam: st.session_state.pending_image = cam
-        elif up: st.session_state.pending_image = up
-        
-        if st.session_state.pending_image:
-            st.image(st.session_state.pending_image, width=150)
-            if st.button("Analyze Image"): 
-                external_input = "Analyze this medical image"
+        st.info("Camera Mode")
+        cam = st.camera_input("Take Photo")
+        if cam: 
+            st.session_state.pending_image = cam
+            external_input = "Analyze this medical image"
 
-    # If external input (Mic/Cam) exists, append it to messages
     if external_input:
         st.session_state.messages.append({"role": "user", "content": external_input})
         with chat_container:
@@ -674,34 +659,19 @@ def patient_app():
     # --- GENERATE AI RESPONSE ---
     if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
         user_msg = st.session_state.messages[-1]["content"]
-        
         with chat_container:
             with st.chat_message("assistant"):
-                with st.spinner("Analyzing..."):
+                with st.spinner("Thinking..."):
                     try:
                         hist = get_medical_history_context(st.session_state.username)
                         model = genai.GenerativeModel('gemini-2.5-flash')
-                        
                         prompt = f"""
-                        Act as an expert doctor named {APP_NAME}. 
-                        Patient: {st.session_state.name}, Age: {st.session_state.age}.
-                        
-                        **INSTRUCTIONS:**
-                        1. Translate input if needed (English, Hindi, Tamil, Telugu).
-                        2. If user greets ("Hi", "Hello"), IGNORE history. Just greet back.
-                        3. If medical, use History: {hist}.
-                        4. Response Language: **{lang}**.
-                        
-                        Query: {user_msg}
-                        
-                        **FORMAT (Medical Only):**
-                        1. **Possible Cause:**
-                        2. **Precautions:**
-                        3. **Medicine:** (OTC only + Disclaimer)
-                        4. **Nearby:** [Find Doctor](https://www.google.com/maps/search/SPECIALIST_TYPE+near+me)
+                        Act as {APP_NAME}, a medical expert. Patient: {st.session_state.name}.
+                        History: {hist}. Query: {user_msg}.
+                        Output Language: {sel_lang} (Translate response).
+                        If medical: Give Cause, Precautions, OTC Meds, Doctor Type.
+                        If casual: Just chat nicely.
                         """
-                        
-                        # Handle Image Analysis
                         if "Analyze this medical image" in user_msg and st.session_state.pending_image:
                             img = Image.open(st.session_state.pending_image)
                             response = model.generate_content([prompt, img])
@@ -713,7 +683,6 @@ def patient_app():
                         st.write(full_resp)
                         save_to_db(st.session_state.name, st.session_state.age, user_msg, full_resp)
                         st.session_state.messages.append({"role": "assistant", "content": full_resp})
-                        
                     except Exception as e:
                         st.error(f"Error: {e}")
 
