@@ -6,7 +6,6 @@ import requests
 import pandas as pd
 import hashlib
 import smtplib 
-import random # <--- Crucial for Key Rotation
 import time 
 from datetime import datetime, date
 from email.message import EmailMessage
@@ -35,13 +34,11 @@ APP_ICON = "🟣"
 SENDER_EMAIL = "dyaswanthgslv@gmail.com"
 APP_PASSWORD = "cmjb igal whua ofml"
 
-# 👇👇 2. PRO HACK: PASTE MULTIPLE API KEYS HERE 👇👇
-# This prevents the 429 Error by switching keys automatically.
+# 👇👇 2. PASTE MULTIPLE NEW KEYS HERE 👇👇
+# (Using multiple keys fixes the "AI Busy" error)
 API_KEYS = [
     "AIzaSyBDECOc4hrCCcl6Oq7f3I6MZLEsleZEWcA",
-    "AIzaSyBNEAlzMzsA4tyKyP_XZ-n1tX59VyCJnpk", 
-    "AIzaSyC5emstfMs6Fj94yuAbRxy_-CwiJSEqkmM",
-    "AIzaSyDS0HBbT5Ktegf6TwtF0Vwc1HP2OGTUuVU" 
+    "AIzaSyBNEAlzMzsA4tyKyP_XZ-n1tX59VyCJnpk"
 ]
 
 # --- 🎨 CONFIGURATION ---
@@ -52,42 +49,56 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 🛡️ ROBUST API HANDLER (The Fix) ---
-def configure_genai():
-    """Randomly selects an API key to distribute the load."""
-    if not API_KEYS or API_KEYS[0] == "YOUR_KEY_1":
-        # Fallback if user didn't update keys
-        try:
-            selected_key = st.secrets["GOOGLE_API_KEY"]
-        except:
-            st.error("🚨 No API Keys found! Please add them in the code.")
-            return None
-    else:
-        selected_key = random.choice(API_KEYS)
-    
-    genai.configure(api_key=selected_key)
-    return True
+# --- 🛡️ ROBUST API HANDLER (V80: SEQUENTIAL ROTATION) ---
+# This ensures we don't retry the same dead key twice.
+if "key_index" not in st.session_state:
+    st.session_state.key_index = 0
 
-def generate_content_safe(model, prompt_input):
+def get_next_key():
+    """Cycles through the list of keys sequentially."""
+    if not API_KEYS or "PASTE_FRESH" in API_KEYS[0]:
+        try:
+            return st.secrets["GOOGLE_API_KEY"]
+        except:
+            return None
+    
+    # Get current key and advance index for next time
+    key = API_KEYS[st.session_state.key_index % len(API_KEYS)]
+    st.session_state.key_index += 1
+    return key
+
+def generate_content_safe(prompt_input):
     """
-    Tries to generate content. If it fails (429 Error), it waits and tries again 
-    with a different key (Conceptually, since we re-configure before calls).
+    Tries to generate content. If Key A fails, it IMMEDIATELY switches to Key B.
     """
-    max_retries = 3
+    model_name = 'gemini-1.5-flash' # High-limit free model
+    
+    # Try as many times as we have keys (or max 3)
+    max_retries = len(API_KEYS) if len(API_KEYS) > 0 else 3
+    
     for attempt in range(max_retries):
         try:
-            # Re-configure with a random key before every single call
-            configure_genai()
+            active_key = get_next_key()
+            if not active_key: 
+                st.error("🚨 No API Keys found! Add them in Home.py code.")
+                return None
+            
+            genai.configure(api_key=active_key)
+            model = genai.GenerativeModel(model_name)
+            
             if isinstance(prompt_input, list):
                 return model.generate_content(prompt_input)
             else:
                 return model.generate_content(prompt_input)
+                
         except Exception as e:
             if "429" in str(e):
-                time.sleep(1) # Wait 1 second before retrying
-                continue # Try again loop
+                # Quota exceeded? Don't wait long, just switch key immediately
+                time.sleep(0.5) 
+                continue 
             else:
-                return None # Real error, stop
+                st.error(f"Error: {e}")
+                return None
     return None
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'medical_history.db')
@@ -345,12 +356,9 @@ def sos_modal():
     if c4.button("🔥 Burn"): condition = "Severe Burns First Aid"
     if condition:
         with st.spinner("Fetching steps..."):
-            # Use our safe generator
-            configure_genai()
-            model = genai.GenerativeModel('gemini-2.5-flash')
-            resp = generate_content_safe(model, f"Provide immediate, bullet-point first aid instructions for {condition}. Urgent tone. Keep it under 50 words.")
+            resp = generate_content_safe(f"Provide immediate, bullet-point first aid instructions for {condition}. Urgent tone. Keep it under 50 words.")
             if resp: st.warning(resp.text)
-            else: st.error("⚠️ AI Unavailable. Call 112 immediately.")
+            else: st.error("⚠️ AI Unavailable (Quota). Check Keys.")
     st.divider()
     if st.button("🔔 Send Alert to Family (Email)", type="primary", use_container_width=True):
         if send_sos_alert(st.session_state.username): st.success("Alert Sent!")
@@ -366,11 +374,8 @@ def prescription_modal():
             with st.spinner("Reading handwriting..."):
                 try:
                     img = Image.open(up_file)
-                    # Use our safe generator
-                    configure_genai()
-                    model = genai.GenerativeModel('gemini-2.5-flash')
                     prompt = "Analyze this prescription image. Extract the list of medicines, their dosages, and frequency. Format cleanly."
-                    response = generate_content_safe(model, [prompt, img])
+                    response = generate_content_safe([prompt, img])
                     
                     if response:
                         extracted_data = response.text
@@ -378,7 +383,7 @@ def prescription_modal():
                         st.success("Digitization Complete!")
                         st.write(extracted_data)
                     else:
-                        st.error("AI is busy. Please try again in 5 seconds.")
+                        st.error("AI is busy (Quota). Please try again later.")
                 except Exception as e: st.error(f"Error: {e}")
     st.divider()
     st.write("### 📂 Saved Prescriptions")
@@ -409,10 +414,8 @@ def bmi_modal():
         if st.button("📝 Generate AI Health Plan"):
             with st.spinner("Creating Plan..."):
                 hist = get_medical_history_context(st.session_state.username)
-                configure_genai()
-                model = genai.GenerativeModel('gemini-2.5-flash')
                 prompt = f"Create a 7-Day Health Plan for Age: {st.session_state.age}, BMI: {st.session_state.current_bmi:.1f}, History: {hist}. Include Diet & Workout."
-                response = generate_content_safe(model, prompt)
+                response = generate_content_safe(prompt)
                 if response: st.markdown(response.text)
                 else: st.error("AI busy.")
 
@@ -428,12 +431,10 @@ def health_plan_modal():
             bmi = w / ((h/100)**2)
             with st.spinner("Consulting AI..."):
                 hist = get_medical_history_context(st.session_state.username)
-                configure_genai()
-                model = genai.GenerativeModel('gemini-2.5-flash')
                 prompt = f"Create a 7-Day Health Plan. Age: {st.session_state.age}, BMI: {bmi:.1f}, Goal: {goal}, History: {hist}. Include Diet & Workout."
-                response = generate_content_safe(model, prompt)
+                response = generate_content_safe(prompt)
                 if response: st.markdown(response.text)
-                else: st.error("AI busy.")
+                else: st.error("AI busy. Try again later.")
 
 @st.dialog("💊 Medicine Reminder")
 def medicine_modal():
@@ -669,7 +670,24 @@ def patient_app():
                 if "https://www.google.com/maps/search/SPECIALIST_TYPE+near+me" in m["content"] and m["role"] == "assistant":
                     st.link_button("📍 Find Specialist Near Me", m["content"].split("(")[-1].split(")")[0])
 
-    # 3. SPACER (Push content up above sticky footer)
+    # --- 3. PROCESS INPUTS (MOVED UP FOR VISIBILITY) ---
+    external_input = None
+    if st.session_state.show_camera:
+        with st.container():
+            st.info("📸 Camera Active")
+            cam = st.camera_input("Take Photo")
+            if cam: 
+                st.session_state.pending_image = cam
+                st.session_state.show_camera = False 
+                external_input = "Analyze this medical image"
+                st.rerun() 
+
+    if external_input:
+        st.session_state.messages.append({"role": "user", "content": external_input})
+        with chat_container:
+            with st.chat_message("user"): st.write(external_input)
+
+    # 4. SPACER (Push content up above sticky footer)
     st.markdown("<div style='height: 150px;'></div>", unsafe_allow_html=True)
 
     # --- LOGIC FOR INPUT ---
@@ -680,10 +698,17 @@ def patient_app():
 
     # --- 5. STICKY FOOTER (ACTION ROW) ---
     
+    lang_map = {"English":"en-US", "Hindi":"hi-IN", "Tamil":"ta-IN", "Telugu":"te-IN"}
+    
+    active_lang_name = "English"
+    if "lang_select" in st.session_state:
+        active_lang_name = st.session_state.lang_select
+        
+    current_lang_code = lang_map.get(active_lang_name, "en-US")
+
     with st.container(border=False):
         
         # ROW 1: TOOLS + LANG
-        # Layout: [Cam] [Mic] [Spacer] [Lang]
         c_cam, c_mic, c_space, c_lang = st.columns([0.6, 0.6, 6, 2])
         
         with c_cam:
@@ -691,7 +716,7 @@ def patient_app():
         
         with c_mic:
             if MIC_AVAILABLE:
-                v_txt = speech_to_text(language='en', start_prompt="🎙️", stop_prompt="🛑", just_once=True, key='STT')
+                v_txt = speech_to_text(language=current_lang_code, start_prompt="🎙️", stop_prompt="🛑", just_once=True, key=f'STT_{active_lang_name}')
                 if v_txt:
                     st.session_state.user_query = v_txt
                     handle_user_input()
@@ -699,27 +724,9 @@ def patient_app():
         
         with c_lang:
              sel_lang = st.selectbox("Language", ["English", "Hindi", "Tamil", "Telugu"], key="lang_select", label_visibility="collapsed")
-             lang_map = {"English":"en-US", "Hindi":"hi-IN", "Tamil":"ta-IN", "Telugu":"te-IN"}
-             actual_lang_code = lang_map[sel_lang]
 
         # ROW 2: SEARCH BAR
         st.text_input("Msg...", placeholder=f"Ask {APP_NAME}...", key="user_query", label_visibility="collapsed", on_change=handle_user_input)
-
-    # --- PROCESS INPUTS (AUTO CLOSE CAMERA) ---
-    external_input = None
-    if st.session_state.show_camera:
-        st.info("Camera Mode")
-        cam = st.camera_input("Take Photo")
-        if cam: 
-            st.session_state.pending_image = cam
-            st.session_state.show_camera = False # <--- AUTO CLOSE FIX
-            external_input = "Analyze this medical image"
-            st.rerun() 
-
-    if external_input:
-        st.session_state.messages.append({"role": "user", "content": external_input})
-        with chat_container:
-            with st.chat_message("user"): st.write(external_input)
 
     # --- GENERATE AI RESPONSE ---
     if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
@@ -730,7 +737,6 @@ def patient_app():
                     try:
                         hist = get_medical_history_context(st.session_state.username)
                         
-                        # --- IMPROVED SYSTEM PROMPT ---
                         system_instruction = f"""
                         You are {APP_NAME}, a professional AI medical assistant.
                         User: {st.session_state.name}.
@@ -745,20 +751,17 @@ def patient_app():
                            - **Warning Signs**: When to see a doctor immediately.
                         3. If the query is casual (e.g., "hi", "thanks"), be friendly and brief.
                         4. DO NOT generate code, math, or unrelated content.
-                        5. Translate the final response to: {sel_lang}.
+                        5. Translate the final response to: {active_lang_name}.
                         """
-                        
-                        configure_genai()
-                        model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=system_instruction)
                         
                         full_resp = None
                         if "Analyze this medical image" in user_msg and st.session_state.pending_image:
                             img = Image.open(st.session_state.pending_image)
-                            full_resp_obj = generate_content_safe(model, [user_msg, img])
+                            full_resp_obj = generate_content_safe([user_msg + "\n" + system_instruction, img])
                             if full_resp_obj: full_resp = full_resp_obj.text
                             st.session_state.pending_image = None 
                         else:
-                            full_resp_obj = generate_content_safe(model, user_msg)
+                            full_resp_obj = generate_content_safe(user_msg + "\n\n" + system_instruction) 
                             if full_resp_obj: full_resp = full_resp_obj.text
                         
                         if full_resp:
@@ -766,11 +769,11 @@ def patient_app():
                             save_to_db(st.session_state.name, st.session_state.age, user_msg, full_resp)
                             st.session_state.messages.append({"role": "assistant", "content": full_resp})
                         else:
-                            st.error("⚠️ AI Service is currently busy (Quota limit). Please wait 30 seconds and try again.")
+                            st.error("⚠️ AI Service is busy. Please try again later.")
                             
                     except Exception as e:
                         if "403" in str(e):
-                            st.error("🚨 API Key Error: Your key is blocked/invalid. Please update it in the code.")
+                            st.error("🚨 API Key Error: Your key is blocked/invalid.")
                         else:
                             st.error(f"Error: {e}")
 
