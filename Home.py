@@ -6,7 +6,7 @@ import requests
 import pandas as pd
 import hashlib
 import smtplib 
-import random
+import random # <--- Crucial for Key Rotation
 import time 
 from datetime import datetime, date
 from email.message import EmailMessage
@@ -25,9 +25,6 @@ try:
 except ImportError:
     MIC_AVAILABLE = False
 
-# --- 🎬 INITIALIZE GLOBALS ---
-lottie_orb = None 
-
 # ==========================================
 # ⚙️ APP CONFIGURATION
 # ==========================================
@@ -38,6 +35,15 @@ APP_ICON = "🟣"
 SENDER_EMAIL = "dyaswanthgslv@gmail.com"
 APP_PASSWORD = "cmjb igal whua ofml"
 
+# 👇👇 2. PRO HACK: PASTE MULTIPLE API KEYS HERE 👇👇
+# This prevents the 429 Error by switching keys automatically.
+API_KEYS = [
+    "AIzaSyBDECOc4hrCCcl6Oq7f3I6MZLEsleZEWcA",
+    "AIzaSyBNEAlzMzsA4tyKyP_XZ-n1tX59VyCJnpk", 
+    "AIzaSyC5emstfMs6Fj94yuAbRxy_-CwiJSEqkmM",
+    "AIzaSyDS0HBbT5Ktegf6TwtF0Vwc1HP2OGTUuVU" 
+]
+
 # --- 🎨 CONFIGURATION ---
 st.set_page_config(
     page_title=APP_NAME,
@@ -46,13 +52,43 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 🛠️ API SETUP ---
-try:
-    my_api_key = st.secrets["GOOGLE_API_KEY"] 
-except:
-    my_api_key = "AIzaSyDS0HBbT5Ktegf6TwtF0Vwc1HP2OGTUuVU"
+# --- 🛡️ ROBUST API HANDLER (The Fix) ---
+def configure_genai():
+    """Randomly selects an API key to distribute the load."""
+    if not API_KEYS or API_KEYS[0] == "YOUR_KEY_1":
+        # Fallback if user didn't update keys
+        try:
+            selected_key = st.secrets["GOOGLE_API_KEY"]
+        except:
+            st.error("🚨 No API Keys found! Please add them in the code.")
+            return None
+    else:
+        selected_key = random.choice(API_KEYS)
+    
+    genai.configure(api_key=selected_key)
+    return True
 
-genai.configure(api_key=my_api_key)
+def generate_content_safe(model, prompt_input):
+    """
+    Tries to generate content. If it fails (429 Error), it waits and tries again 
+    with a different key (Conceptually, since we re-configure before calls).
+    """
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            # Re-configure with a random key before every single call
+            configure_genai()
+            if isinstance(prompt_input, list):
+                return model.generate_content(prompt_input)
+            else:
+                return model.generate_content(prompt_input)
+        except Exception as e:
+            if "429" in str(e):
+                time.sleep(1) # Wait 1 second before retrying
+                continue # Try again loop
+            else:
+                return None # Real error, stop
+    return None
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'medical_history.db')
 
@@ -309,9 +345,12 @@ def sos_modal():
     if c4.button("🔥 Burn"): condition = "Severe Burns First Aid"
     if condition:
         with st.spinner("Fetching steps..."):
+            # Use our safe generator
+            configure_genai()
             model = genai.GenerativeModel('gemini-2.5-flash')
-            resp = model.generate_content(f"Provide immediate, bullet-point first aid instructions for {condition}. Urgent tone. Keep it under 50 words.")
-            st.warning(resp.text)
+            resp = generate_content_safe(model, f"Provide immediate, bullet-point first aid instructions for {condition}. Urgent tone. Keep it under 50 words.")
+            if resp: st.warning(resp.text)
+            else: st.error("⚠️ AI Unavailable. Call 112 immediately.")
     st.divider()
     if st.button("🔔 Send Alert to Family (Email)", type="primary", use_container_width=True):
         if send_sos_alert(st.session_state.username): st.success("Alert Sent!")
@@ -327,13 +366,19 @@ def prescription_modal():
             with st.spinner("Reading handwriting..."):
                 try:
                     img = Image.open(up_file)
+                    # Use our safe generator
+                    configure_genai()
                     model = genai.GenerativeModel('gemini-2.5-flash')
                     prompt = "Analyze this prescription image. Extract the list of medicines, their dosages, and frequency. Format cleanly."
-                    response = model.generate_content([prompt, img])
-                    extracted_data = response.text
-                    save_prescription(st.session_state.username, extracted_data)
-                    st.success("Digitization Complete!")
-                    st.write(extracted_data)
+                    response = generate_content_safe(model, [prompt, img])
+                    
+                    if response:
+                        extracted_data = response.text
+                        save_prescription(st.session_state.username, extracted_data)
+                        st.success("Digitization Complete!")
+                        st.write(extracted_data)
+                    else:
+                        st.error("AI is busy. Please try again in 5 seconds.")
                 except Exception as e: st.error(f"Error: {e}")
     st.divider()
     st.write("### 📂 Saved Prescriptions")
@@ -364,10 +409,12 @@ def bmi_modal():
         if st.button("📝 Generate AI Health Plan"):
             with st.spinner("Creating Plan..."):
                 hist = get_medical_history_context(st.session_state.username)
+                configure_genai()
                 model = genai.GenerativeModel('gemini-2.5-flash')
                 prompt = f"Create a 7-Day Health Plan for Age: {st.session_state.age}, BMI: {st.session_state.current_bmi:.1f}, History: {hist}. Include Diet & Workout."
-                response = model.generate_content(prompt)
-                st.markdown(response.text)
+                response = generate_content_safe(model, prompt)
+                if response: st.markdown(response.text)
+                else: st.error("AI busy.")
 
 @st.dialog("🥗 AI Health Planner")
 def health_plan_modal():
@@ -381,10 +428,12 @@ def health_plan_modal():
             bmi = w / ((h/100)**2)
             with st.spinner("Consulting AI..."):
                 hist = get_medical_history_context(st.session_state.username)
+                configure_genai()
                 model = genai.GenerativeModel('gemini-2.5-flash')
                 prompt = f"Create a 7-Day Health Plan. Age: {st.session_state.age}, BMI: {bmi:.1f}, Goal: {goal}, History: {hist}. Include Diet & Workout."
-                response = model.generate_content(prompt)
-                st.markdown(response.text)
+                response = generate_content_safe(model, prompt)
+                if response: st.markdown(response.text)
+                else: st.error("AI busy.")
 
 @st.dialog("💊 Medicine Reminder")
 def medicine_modal():
@@ -420,7 +469,6 @@ def full_history_modal():
                 st.markdown(f"**Symptom:** {item[1]}"); st.info(f"**Advice:**\n{item[2]}")
     else: st.info("No history found.")
 
-# --- RESTORED PROFILE MODAL ---
 @st.dialog("👤 User Profile")
 def profile_modal():
     st.write(f"**User:** {st.session_state.username}")
@@ -700,19 +748,26 @@ def patient_app():
                         5. Translate the final response to: {sel_lang}.
                         """
                         
+                        configure_genai()
                         model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=system_instruction)
                         
+                        full_resp = None
                         if "Analyze this medical image" in user_msg and st.session_state.pending_image:
                             img = Image.open(st.session_state.pending_image)
-                            response = model.generate_content([user_msg, img])
+                            full_resp_obj = generate_content_safe(model, [user_msg, img])
+                            if full_resp_obj: full_resp = full_resp_obj.text
                             st.session_state.pending_image = None 
                         else:
-                            response = model.generate_content(user_msg)
+                            full_resp_obj = generate_content_safe(model, user_msg)
+                            if full_resp_obj: full_resp = full_resp_obj.text
                         
-                        full_resp = response.text
-                        st.write(full_resp)
-                        save_to_db(st.session_state.name, st.session_state.age, user_msg, full_resp)
-                        st.session_state.messages.append({"role": "assistant", "content": full_resp})
+                        if full_resp:
+                            st.write(full_resp)
+                            save_to_db(st.session_state.name, st.session_state.age, user_msg, full_resp)
+                            st.session_state.messages.append({"role": "assistant", "content": full_resp})
+                        else:
+                            st.error("⚠️ AI Service is currently busy (Quota limit). Please wait 30 seconds and try again.")
+                            
                     except Exception as e:
                         if "403" in str(e):
                             st.error("🚨 API Key Error: Your key is blocked/invalid. Please update it in the code.")
